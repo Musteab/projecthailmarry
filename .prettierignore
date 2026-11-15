@@ -5,3 +5,4 @@ pnpm-lock.yaml
 data
 docs/plan
 .data
+packages/shared/src/fixtures/regionMini.data.ts
