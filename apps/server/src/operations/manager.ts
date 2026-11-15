@@ -221,6 +221,14 @@ export class OperationManager {
     }
   }
 
+  /** Finds the operation that holds a work order. */
+  findWorkOrder(workOrderId: string): OperationRuntime {
+    for (const runtime of this.runtimes.values()) {
+      if (runtime.world.workOrders[workOrderId]) return runtime;
+    }
+    throw notFound(`Work order "${workOrderId}"`);
+  }
+
   /** Reloads the agency rules into every live operation after one is edited. */
   refreshRules(): void {
     const rules = listRules(this.options.db);

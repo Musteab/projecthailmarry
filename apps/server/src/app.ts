@@ -9,6 +9,7 @@ import { registerAuthRoutes } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { registerOperationRoutes } from './routes/operations';
 import { registerRegionRoutes } from './routes/regions';
+import { registerRestorationRoutes } from './routes/restoration';
 import { registerScenarioRoutes } from './routes/scenarios';
 
 /**
@@ -33,6 +34,15 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
     allowedHeaders: ['Authorization', 'Content-Type'],
   });
 
+  // Clients often send `Content-Type: application/json` on a POST that has no body (approve,
+  // analyse). Fastify would reject that as malformed JSON, so treat it as having no body.
+  app.addHook('onRequest', async (request) => {
+    const length = request.headers['content-length'];
+    if (length === '0' || (length === undefined && !request.headers['transfer-encoding'])) {
+      delete request.headers['content-type'];
+    }
+  });
+
   app.decorateRequest('user', null);
   app.addHook('onRequest', (request) => ctx.auth.gate(request));
 
@@ -42,6 +52,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerRegionRoutes(app, ctx);
   registerOperationRoutes(app, ctx);
   registerActionRoutes(app, ctx);
+  registerRestorationRoutes(app, ctx);
   await registerRealtime(app, ctx);
 
   // Routes owned by @bastion/intel (/api/intel/*, /public/*), when the package provides them.
