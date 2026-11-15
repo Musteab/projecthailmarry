@@ -325,7 +325,7 @@ describe('asynchronous intel providers', () => {
   });
 
   it('loads the fallback while @bastion/intel is still a placeholder', async () => {
-    const loaded = await loadIntel({});
+    const loaded = await loadIntel();
     expect(loaded.port).toBeDefined();
     if (loaded.source === 'fallback') expect(loaded.note).toMatch(/intel/);
     const triage: TriageResult = await loaded.port.triage(cardiac, buildIntelContext(calm()));

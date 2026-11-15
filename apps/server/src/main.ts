@@ -7,7 +7,7 @@ async function main(): Promise<void> {
   const config = loadConfig();
   // The simulation loop reports faults through the same logger as the HTTP server.
   const faults: { log?: (message: string, error?: unknown) => void } = {};
-  const intel = await loadIntel(process.env);
+  const intel = await loadIntel();
   const ctx = createContext(config, {
     intel,
     logger: { error: (message, error) => faults.log?.(message, error) },
