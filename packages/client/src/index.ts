@@ -1,6 +1,10 @@
-/**
- * @bastion/client: data layer between the web UI and the backend.
- * Owner: Muste. Bootstrap placeholder; the transport, store, hooks and mock engine land in MUS-001.
- */
-export { CONTRACT_VERSION } from '@bastion/shared';
+/** Muste's data layer. UI code consumes these hooks; transports own network access. */
+export { CONTRACT_VERSION, can } from '@bastion/shared';
 export const CLIENT_PACKAGE = '@bastion/client';
+export * from './transport';
+export * from './transport/mock';
+export * from './store';
+export * from './session';
+export * from './helpers';
+export * from './runtime';
+export * from './hooks';

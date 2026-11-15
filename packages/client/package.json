@@ -10,6 +10,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bastion/shared": "workspace:*"
+    "@bastion/shared": "workspace:*",
+    "zustand": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^31.0.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }
