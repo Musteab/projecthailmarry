@@ -1,3 +1,4 @@
+import { hazardSystem } from './hazards/index';
 import type { SystemFactory } from './runtime';
 import { scenarioRunner } from './scenarioRunner';
 
@@ -6,5 +7,5 @@ import { scenarioRunner } from './scenarioRunner';
  * scenario -> hazards -> grid -> incidents -> decisions -> actions -> units -> metrics.
  */
 export function defaultSystems(): SystemFactory[] {
-  return [scenarioRunner];
+  return [scenarioRunner, hazardSystem];
 }
