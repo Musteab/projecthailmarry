@@ -1,3 +1,4 @@
+import { registerDemoHotkeys } from '../demo/sequence';
 import { createContext, createElement, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
@@ -20,7 +21,11 @@ export function BastionProvider({
   const [client] = useState(() => supplied ?? createBastionClient(config));
   useEffect(() => {
     void client.start();
-    return client.stop;
+    const stopKeys = registerDemoHotkeys(client.stageDirector);
+    return () => {
+      stopKeys();
+      client.stop();
+    };
   }, [client]);
   return createElement(Context.Provider, { value: client }, children);
 }
@@ -134,8 +139,24 @@ export function useCopilot() {
 }
 export function useDemoDirector() {
   const client = useBastionClient();
-  return useStore(
+  const state = useStore(client.stageDirector.store);
+  const beats = useStore(
     client.data,
     useShallow((state) => ({ steps: state.steps, current: state.current, ...client.demoCommands })),
   );
+  return {
+    ...beats,
+    workflow: {
+      ...state,
+      steps: client.stageDirector.steps,
+      next: client.stageDirector.next,
+      goto: client.stageDirector.goto,
+      reset: client.stageDirector.reset,
+    },
+  };
+}
+/** Idempotent with the provider registration; mounting twice never doubles an action. */
+export function useDemoHotkeys() {
+  const client = useBastionClient();
+  useEffect(() => registerDemoHotkeys(client.stageDirector), [client]);
 }

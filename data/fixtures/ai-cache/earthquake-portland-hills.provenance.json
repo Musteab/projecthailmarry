@@ -2,6 +2,6 @@
   "scenarioId": "earthquake-portland-hills",
   "source": "deterministic-rule-fallback",
   "modelGenerated": false,
-  "entries": 5,
+  "entries": 0,
   "note": "Rehearsal fixtures, not claimed Claude responses."
 }

@@ -9,7 +9,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "record": "node --import tsx scripts/record.ts",
-    "fixtures": "node --import tsx scripts/fixtures.ts"
+    "fixtures": "node --import tsx scripts/fixtures.ts",
+    "demo:prewarm": "pnpm --filter @bastion/intel demo:prewarm",
+    "demo:check": "pnpm --filter @bastion/intel demo:check"
   },
   "dependencies": {
     "@bastion/shared": "workspace:*",
