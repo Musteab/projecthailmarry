@@ -38,6 +38,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@bastion/intel':
+        specifier: workspace:*
+        version: link:../../packages/intel
       '@bastion/shared':
         specifier: workspace:*
         version: link:../../packages/shared

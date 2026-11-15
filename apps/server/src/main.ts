@@ -1,17 +1,26 @@
 import { buildApp } from './app';
 import { ConfigError, loadConfig } from './config';
 import { createContext } from './context';
+import { loadIntel } from './intel/loader';
 
 async function main(): Promise<void> {
   const config = loadConfig();
   // The simulation loop reports faults through the same logger as the HTTP server.
   const faults: { log?: (message: string, error?: unknown) => void } = {};
+  const intel = await loadIntel(process.env);
   const ctx = createContext(config, {
+    intel,
     logger: { error: (message, error) => faults.log?.(message, error) },
   });
   const app = await buildApp(ctx);
 
   faults.log = (message, error) => app.log.error({ err: error }, message);
+
+  if (intel.source === 'fallback') {
+    app.log.warn(`intel: using the rule-based fallback (${intel.note})`);
+  } else {
+    app.log.info('intel: @bastion/intel loaded');
+  }
 
   const { boot } = ctx;
   if (boot.migrationsApplied.length > 0) {

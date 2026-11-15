@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@bastion/intel": "workspace:*",
     "@bastion/shared": "workspace:*",
     "@fastify/cors": "^11.4.3",
     "@fastify/websocket": "^11.3.7",
