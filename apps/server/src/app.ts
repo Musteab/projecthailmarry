@@ -4,6 +4,7 @@ import type { AppContext } from './context';
 import { installErrorHandling } from './errors';
 import { createIntelHost } from './intel/host';
 import { registerRealtime } from './realtime/hub';
+import { registerActionRoutes } from './routes/actions';
 import { registerAuthRoutes } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { registerOperationRoutes } from './routes/operations';
@@ -40,6 +41,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerScenarioRoutes(app, ctx);
   registerRegionRoutes(app, ctx);
   registerOperationRoutes(app, ctx);
+  registerActionRoutes(app, ctx);
   await registerRealtime(app, ctx);
 
   // Routes owned by @bastion/intel (/api/intel/*, /public/*), when the package provides them.
