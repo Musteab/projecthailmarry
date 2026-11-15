@@ -170,6 +170,7 @@ export function analyzeAccess(
   };
   const before = travel(world.roads);
   const candidates = Object.keys(world.roads)
+    .filter((id) => world.roads[id].status !== 'open' && region.edges.some((e) => e.id === id))
     .sort()
     .map((id) => {
       const edge = region.edges.find((e) => e.id === id)!;
@@ -229,8 +230,8 @@ export function analyzeAccess(
           avgHospitalMinAfter: mean('afterMin'),
           facilitiesReconnected: [],
         },
-        rationale: 'Ranked by fixture hospital access and travel minutes recovered per crew-hour.',
-        narrative: `Reopens ${candidate.label}; comparison uses the synthetic road graph.`,
+        rationale: 'Ranked by modeled hospital access and travel minutes recovered per crew-hour.',
+        narrative: `Reopens ${candidate.label}; comparison uses the supplied road graph and exercise closures.`,
       };
     })
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
