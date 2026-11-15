@@ -560,8 +560,54 @@ export function createMockScripts(region: RegionStatic): MockScript[] {
       ...recovery,
     ],
   };
-  return [flood, quake].map((script) => ({
+  const scripts = [flood, quake].map((script) => ({
     ...script,
     events: script.events.sort((a, b) => a.at - b.at),
   }));
+  if (region.config.id === 'region-mini') return scripts;
+  const ids: Record<string, string> = {};
+  const byLongitude = [...region.facilities].sort((a, b) => a.position[0] - b.position[0]);
+  const facility = (kind: RegionStatic['facilities'][number]['kind'], east = false) => {
+    const list = byLongitude.filter((f) => f.kind === kind);
+    return (east ? list.at(-1) : list[0])?.id;
+  };
+  for (const [mini, real] of [
+    [MINI.facilities.hospitalWest, facility('hospital')],
+    [MINI.facilities.hospitalEast, facility('hospital', true)],
+    [MINI.facilities.shelterWest, facility('shelter')],
+    [MINI.facilities.shelterEast, facility('shelter', true)],
+  ] as const)
+    if (real) ids[mini] = real;
+  for (const [mini, kind, index] of [
+    [MINI.units.rescue1, 'swift_water', 0],
+    [MINI.units.rescue2, 'swift_water', 1],
+    [MINI.units.usar1, 'usar', 0],
+    [MINI.units.engine1, 'engine', 0],
+    [MINI.units.medic1, 'als_ambulance', 0],
+    [MINI.units.medic2, 'bls_ambulance', 1],
+  ] as const) {
+    const units = region.units.filter((u) => u.kind === kind);
+    if (units.length) ids[mini] = (units[index] ?? units[0]).id;
+  }
+  const north = region.bridges.find((b) => b.name === 'Hawthorne Bridge') ?? region.bridges[0];
+  if (north) {
+    ids[MINI.bridges.north] = north.id;
+    ids[miniEdgeH(2, 4)] = north.edgeIds[0];
+  }
+  for (const [i, mini] of [MINI.sections.creekside, MINI.sections.hospitalEast].entries())
+    ids[mini] = region.grid.sections[i]?.id ?? region.grid.sections[0].id;
+  const target = miniPoint(4, 2);
+  const roads = [...region.edges].sort(
+    (a, b) =>
+      Math.hypot(a.geometry[0][0] - target[0], a.geometry[0][1] - target[1]) -
+      Math.hypot(b.geometry[0][0] - target[0], b.geometry[0][1] - target[1]),
+  );
+  [miniEdgeV(4, 2), miniEdgeV(5, 2), miniEdgeH(4, 2), miniEdgeH(4, 4)].forEach(
+    (id, i) => (ids[id] = roads[i].id),
+  );
+  return JSON.parse(
+    JSON.stringify(scripts, (_key, value) =>
+      typeof value === 'string' ? (ids[value] ?? value) : value,
+    ),
+  ) as MockScript[];
 }

@@ -7,9 +7,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "region:build": "node --import tsx src/cli.ts"
   },
   "dependencies": {
-    "@bastion/shared": "workspace:*"
+    "@bastion/shared": "workspace:*",
+    "h3-js": "^4.5.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5",
+    "tsx": "^4.23.15"
   }
 }

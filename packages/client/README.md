@@ -126,3 +126,13 @@ the real server. No cloud keys or network are needed to play either exercise.
 Client tests cover snapshot/patch replay and caps, stable React selectors, route
 interpolation, session permissions, HTTP errors, WebSocket reconnect cleanup,
 Strict Mode lifecycle, offline motion and local command effects.
+
+## Portland region pack
+
+`loadPortlandRegion()` lazily loads and validates the committed real-geography pack.
+For the larger mock, create a client with
+`createBastionClient({ mock: true, transport: await createPortlandMockTransport() })`
+and pass it to the provider. The default small preview remains region-mini to
+keep startup and tests quick. The existing mock scripts remap unit, facility,
+bridge, road and grid references to Portland entities; final Portland stage
+choreography is provided by MUS-007/008.
