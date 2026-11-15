@@ -30,6 +30,8 @@ export function normalizeCandidate(
 }
 const text = (s: Signal) => `${s.title} ${s.body}`;
 export function classify(s: Signal): IncidentKind | undefined {
+  // Area-wide warnings and gauges are context, not eyewitness reports of casualties.
+  if (s.data?.feed && (s.source === 'official_alert' || s.source === 'sensor')) return undefined;
   const t = text(s);
   if (/chest pain|cardiac|not breathing|unconscious|injur|bleed|medical/i.test(t)) return 'medical';
   if (/collaps|rubble|structural damage/i.test(t)) return 'structure_collapse';
