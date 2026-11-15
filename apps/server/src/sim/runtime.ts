@@ -15,6 +15,7 @@ import type { RegionIndex } from '../region/index';
 import { RoadNetwork } from '../routing/network';
 import { WorldState } from '../world/WorldState';
 import { applyInject } from './injects';
+import { UnitService } from '../units/units';
 import { Prng } from './prng';
 
 /** The simulation always advances in steps of this many sim seconds, whatever the speed. */
@@ -59,6 +60,10 @@ export class OperationRuntime {
   readonly scenario: Scenario | null;
   /** Repairs the restoration engine can choose from, keyed by candidate id. */
   readonly repairCandidates = new Map<string, RepairCandidate>();
+  /** Moves units; the decision engine and work orders send them through this. */
+  readonly units: UnitService;
+  /** Running totals that are not derivable from the current world. */
+  readonly stats = { peopleRescued: 0 };
   /** Signals that arrived since the previous step, for systems that react to them. */
   newSignals: Signal[] = [];
 
@@ -68,6 +73,7 @@ export class OperationRuntime {
   private beats: ScenarioBeat[] = [];
   private owedSimSec = 0;
   private stepping = false;
+  private readonly background: Promise<unknown>[] = [];
   private readonly lastFailureAt = new Map<string, number>();
 
   constructor(options: RuntimeOptions) {
@@ -100,6 +106,7 @@ export class OperationRuntime {
         : {}),
     }));
     this.world = new WorldState(initial);
+    this.units = new UnitService(this);
     this.systems = options.systems.map((create) => create(this));
   }
 
@@ -221,6 +228,32 @@ export class OperationRuntime {
 
   emitBeat(beat: ScenarioBeat): void {
     this.beats.push(beat);
+  }
+
+  /** Registers background work (an AI call) whose result a later step will pick up. */
+  track(work: Promise<unknown>): void {
+    this.background.push(work);
+    void work.finally(() => {
+      const at = this.background.indexOf(work);
+      if (at !== -1) this.background.splice(at, 1);
+    });
+  }
+
+  /** Resolves once all background work started so far has finished. */
+  async settle(): Promise<void> {
+    while (this.background.length > 0) await Promise.allSettled([...this.background]);
+  }
+
+  /**
+   * Like `advance`, but lets background work finish between steps. With an asynchronous intel
+   * provider this is what makes a headless run reproducible.
+   */
+  async advanceSettled(simSeconds: number): Promise<void> {
+    const steps = Math.floor(simSeconds / SIM_STEP_SEC);
+    for (let i = 0; i < steps && !this.finished; i++) {
+      this.step();
+      await this.settle();
+    }
   }
 
   drainBeats(): ScenarioBeat[] {
