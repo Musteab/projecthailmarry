@@ -44,7 +44,7 @@ interface RegionStatic {
 }
 ```
 
-Region pack on disk: `data/regions/<id>/{region,roads,facilities,cells,grid,units}.json`. `roads.json` holds `{ nodes, edges, bridges }`. A tiny synthetic pack `region-mini` ships in `packages/shared/fixtures/` for tests and early mocks.
+Region pack on disk: `data/regions/<id>/{region,roads,facilities,cells,grid,units}.json`. `roads.json` holds `{ nodes, edges, bridges }`. A tiny synthetic region and a five-minute scenario ship as test fixtures for tests and early mocks: `import { loadRegionMini, loadScenarioMini, MINI } from '@bastion/shared/fixtures'` (`MINI` holds the stable ids of its bridges, facilities, grid sections and units).
 
 ### 5.2 Dynamic world
 
@@ -215,9 +215,21 @@ interface WorldSnapshot {
   timeline: TimelineEvent[];                           // most recent 500
   restoration: RestorationAnalysis | null; workOrders: Record<string, WorkOrder>;
 }
-// Patch = same keyed collections, upsert semantics. A null value deletes / resets that id.
-// `signals` and `timeline` in a patch are appended. Absent key = unchanged.
-type WorldPatch = Partial<Omit<WorldSnapshot, 'operation' | 'clock'>> & { operation?: Operation };
+// Patch = the diff since the previous tick. Absent key = unchanged.
+// Keyed collections are upserts: each entry is the COMPLETE new value of that entity (no field
+// merging) and `null` removes the id. `signals` and `timeline` are appended (capped at 200 / 500).
+// `hazards`, `metrics`, `operation` replace. `restoration: null` clears the analysis.
+// The reference implementation is exported: applyWorldPatch(world, patch, clock) -> WorldSnapshot.
+// Also exported: makeEmptyWorld(operation) and makeInitialWorld(operation, region) (units at home,
+// facilities normal, grid energized).
+type WorldPatch = Partial<{
+  operation: Operation; hazards: HazardState[]; metrics: Metrics;
+  cells: Record<string, CellState | null>; roads: Record<string, RoadState | null>;
+  facilities: Record<string, FacilityState | null>; units: Record<string, Unit | null>;
+  incidents: Record<string, Incident | null>; actions: Record<string, Action | null>;
+  gridSections: Record<string, GridSectionState | null>; workOrders: Record<string, WorkOrder | null>;
+  signals: Signal[]; timeline: TimelineEvent[]; restoration: RestorationAnalysis | null;
+}>;
 
 type ServerMessage =
   | { t: 'snapshot'; world: WorldSnapshot }
@@ -260,7 +272,7 @@ interface Scenario {
 
 ### 5.7 REST API
 
-All routes are under `/api`, JSON in and out, `Authorization: Bearer <jwt>` unless marked public. Errors: `{ "error": { "code": string, "message": string, "details"?: unknown } }` with 400 (validation), 401, 403, 404, 409 (illegal state transition), 500.
+All routes are under `/api`, JSON in and out, `Authorization: Bearer <jwt>` unless marked public. Errors: `{ "error": { "code": string, "message": string, "details"?: unknown } }` with 400 (validation), 401, 403, 404, 409 (illegal state transition), 500. Every path below is available as a builder in `apiPaths` from `@bastion/shared` (for example `apiPaths.operationControl(id)`); use it on both sides instead of string literals. Request bodies have schemas too (`LoginRequestSchema`, `ControlRequestSchema`, `OverrideActionRequestSchema`, …).
 
 | Method and path | Purpose | Body → response | Owner | Consumer |
 |---|---|---|---|---|
