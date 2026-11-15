@@ -1,4 +1,5 @@
 import {
+  apiPaths,
   ActionPayloadSchema,
   ControlRequestSchema,
   CreateOperationRequestSchema,
@@ -23,6 +24,8 @@ import type {
   WorkOrderStatus,
   RestorationAnalysis,
   AccessImpact,
+  RegionStatic,
+  Scenario,
   UnitAssignment,
   AuditEntry,
 } from '@bastion/shared';
@@ -33,14 +36,43 @@ import { ScriptedEngine, copy, diffWorld, validatedMessage } from '../mock/engin
 import { analyzeAccess, routeBetween, nearestNode } from '../mock/routing';
 import { unitPositionAt } from '../helpers';
 import { ApiError } from './index';
+import { RecordingPlayer } from '../mock/recording';
+import type { RecordedFrame } from '../mock/recording';
 import type { Connection, Method, Transport } from './index';
 
-/** A local UI fixture, not the hazard/routing engine. Never calls an external service. */
+export interface MockOptions {
+  recording?: string | RecordedFrame[];
+  region?: RegionStatic;
+}
+/** Scripted exercise or recorded-run replay. Never calls an external service. */
 export class MockTransport implements Transport {
-  readonly region = loadRegionMini();
-  readonly scripts = createMockScripts(this.region);
-  private selected = this.scripts[0];
+  readonly region: RegionStatic;
+  readonly scripts: ReturnType<typeof createMockScripts>;
+  private selected: ReturnType<typeof createMockScripts>[number];
+  private replay?: RecordingPlayer;
+  private replayRunning = false;
+  private replayRate = 1;
   get scenario() {
+    if (this.replay) {
+      const world = this.replay.world;
+      return {
+        ...this.selected.scenario,
+        id: world.operation.scenarioId ?? 'recorded-run',
+        regionId: world.operation.regionId,
+        name: `Recorded: ${world.operation.name}`,
+        description: 'Captured server messages; controls change playback only.',
+        durationSimSec:
+          world.clock.durationSimSec ??
+          Math.max(
+            1,
+            ...this.replay.frames.flatMap((f) =>
+              f.message.t === 'tick' ? [f.message.clock.simTime] : [],
+            ),
+          ),
+        hazard: world.hazards[0]?.kind ?? 'flash_flood',
+        beats: this.replay.beats,
+      } satisfies Scenario;
+    }
     return this.selected.scenario;
   }
   private engine!: ScriptedEngine;
@@ -81,7 +113,17 @@ export class MockTransport implements Transport {
     },
   ];
 
-  constructor() {
+  constructor(options: MockOptions = {}) {
+    this.region = options.region ?? loadRegionMini();
+    this.scripts = createMockScripts(this.region);
+    this.selected = this.scripts[0];
+    if (options.recording) {
+      this.replay = new RecordingPlayer(options.recording);
+      if (this.replay.world.operation.regionId !== this.region.config.id)
+        throw new Error('Supply the region pack matching the recording');
+      this.world = copy(this.replay.world);
+      return;
+    }
     this.world = this.seed(this.operation());
     this.resetEngine();
   }
@@ -271,7 +313,8 @@ export class MockTransport implements Transport {
     }
     unit.assignment = {
       ...assignment,
-      ...route,
+      route: route.route,
+      routeEdgeIds: route.routeEdgeIds,
       departedSimTime: this.world.clock.simTime,
       etaSimTime: this.world.clock.simTime + route.seconds,
     };
@@ -363,10 +406,54 @@ export class MockTransport implements Transport {
   }
   /** Wall seconds; the script clock applies the selected simulation speed. */
   advance(seconds: number) {
+    if (this.replay) {
+      if (!this.replayRunning) return;
+      this.replay.advance(
+        seconds,
+        (message) => {
+          this.world = copy(this.replay!.world);
+          this.world.clock.speed *= this.replayRate;
+          this.emit(this.replayMessage(message));
+        },
+        this.replayRate,
+      );
+      if (this.replay.complete) {
+        this.replayRunning = false;
+        this.world.clock.speed = 0;
+        this.emit({ t: 'tick', clock: copy(this.world.clock), patch: {} });
+      }
+      return;
+    }
     this.engine.advance(seconds);
   }
   /** Rebuild a scripted exercise to a beat; no wall-clock timer is needed. */
+  private replayMessage(message: ServerMessage): ServerMessage {
+    if (message.t === 'tick')
+      return {
+        ...message,
+        clock: { ...message.clock, speed: message.clock.speed * this.replayRate },
+      };
+    if (message.t === 'snapshot')
+      return {
+        ...message,
+        world: {
+          ...message.world,
+          clock: { ...message.world.clock, speed: message.world.clock.speed * this.replayRate },
+        },
+      };
+    return message;
+  }
   seek(simTime: number) {
+    if (this.replay) {
+      this.replay.seek(simTime, (message) => {
+        this.world = copy(this.replay!.world);
+        this.emit(message);
+      });
+      this.replayRunning = false;
+      this.world.clock.speed = 0;
+      this.emit({ t: 'tick', clock: copy(this.world.clock), patch: {} });
+      return;
+    }
     if (!Number.isFinite(simTime) || simTime < 0 || simTime > this.scenario.durationSimSec)
       throw new ApiError(400, 'invalid_time', 'Invalid exercise time');
     this.world = this.seed({ ...this.world.operation, status: 'running' });
@@ -394,7 +481,11 @@ export class MockTransport implements Transport {
     this.listeners.add(onMessage);
     onConnection?.('mock');
     onMessage(validatedMessage({ t: 'snapshot', world: this.world }));
-    if (this.engine.latestBeat)
+    if (this.replay?.latestBeat)
+      onMessage(validatedMessage({ t: 'beat', beat: this.replay.latestBeat }));
+    else if (this.replay) {
+      /* initial snapshot supplied above */
+    } else if (this.engine.latestBeat)
       onMessage(validatedMessage({ t: 'beat', beat: this.engine.latestBeat }));
     else this.engine.announceInitialBeat();
     if (!this.timer) {
@@ -684,6 +775,7 @@ export class MockTransport implements Transport {
     return order;
   }
   async request<T>(method: Method, path: string, body?: unknown): Promise<T> {
+    if (this.replay) return copy(this.handleReplay(method, path, body)) as T;
     const original = this.world;
     const before = copy(this.world);
     let result: unknown;
@@ -726,6 +818,48 @@ export class MockTransport implements Transport {
       if ((body as { command?: string })?.command === 'start') this.engine.announceInitialBeat();
     }
     return structuredClone(result) as T;
+  }
+  private handleReplay(method: Method, path: string, body?: unknown): unknown {
+    const replay = this.replay!;
+    if (path === apiPaths.scenarios && method === 'GET')
+      return [ScenarioSummarySchema.parse(this.scenario)];
+    if (path === apiPaths.operations && method === 'POST') {
+      const input = CreateOperationRequestSchema.parse(body);
+      if (input.mode !== 'exercise')
+        throw new ApiError(400, 'mock_exercise_only', 'Replay cannot create a live operation');
+      if (input.regionId !== this.region.config.id || input.scenarioId !== this.scenario.id)
+        throw new ApiError(404, 'not_found', 'Unknown recording');
+      replay.reset();
+      this.replayRunning = false;
+      this.replayRate = 1;
+      this.world = copy(replay.world);
+      this.world.clock.speed = 0;
+      this.snapshot();
+      return this.world.operation;
+    }
+    if (path === apiPaths.operationControl(this.world.operation.id) && method === 'POST') {
+      const input = ControlRequestSchema.parse(body);
+      if (input.command === 'reset') {
+        replay.reset();
+        this.replayRate = 1;
+        this.replayRunning = false;
+        this.world = copy(replay.world);
+      } else if (input.command === 'start' || input.command === 'resume') this.replayRunning = true;
+      else if (input.command === 'pause' || input.command === 'end') this.replayRunning = false;
+      else if (input.command === 'speed') this.replayRate = input.speed;
+      this.world.clock.speed = this.replayRunning ? replay.world.clock.speed * this.replayRate : 0;
+      this.lastTick = Date.now();
+      this.snapshot();
+      return this.world.operation;
+    }
+    const permitted = method === 'GET' || path === apiPaths.login;
+    if (!permitted)
+      throw new ApiError(
+        409,
+        'replay_read_only',
+        'Recorded actions cannot be edited; launch a scripted exercise to intervene',
+      );
+    return this.handle(method, path, body);
   }
   private handle(method: Method, path: string, body?: unknown): unknown {
     const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
@@ -899,17 +1033,18 @@ export class MockTransport implements Transport {
         return {
           generatedAt: this.world.clock.simTime,
           headline: 'Mock exercise briefing',
-          situation: 'Synthetic incidents and moving units for UI development.',
-          priorities: ['Review the pending utility action'],
+          situation: `${this.scenario.name}: ${this.world.metrics.activeIncidents} active incidents and ${this.world.metrics.customersOut} customers without grid power.`,
+          priorities: Object.values(this.world.actions)
+            .filter((a) => a.status === 'awaiting_approval')
+            .map((a) => a.explain.headline),
           risks: ['Exercise data only'],
           recommendedActions: [],
         } satisfies Briefing;
       if (parts[4] === 'copilot' && method === 'POST')
         return {
-          answer:
-            'Mock v0: inspect the incident, unit and action panels. Live intelligence is not connected.',
+          answer: `Scripted ${this.scenario.hazard} exercise: ${this.world.metrics.activeIncidents} active incidents, ${this.world.metrics.unitsDeployed} units deployed and ${this.world.metrics.roadsClosed} roads closed. This response uses local exercise data.`,
         };
     }
-    throw new ApiError(404, 'not_found', `Mock v0 does not implement ${method} ${path}`);
+    throw new ApiError(404, 'not_found', `Mock does not implement ${method} ${path}`);
   }
 }
