@@ -129,7 +129,7 @@ export function useCopilot() {
   const client = useBastionClient();
   return useStore(
     client.data,
-    useShallow((state) => ({ ask: client.ask, history: state.history })),
+    useShallow((state) => ({ ask: client.ask, history: state.history, refs: state.copilotRefs })),
   );
 }
 export function useDemoDirector() {

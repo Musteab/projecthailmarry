@@ -13,14 +13,21 @@ import { FUSION_PROMPT, FUSION_VERSION } from './prompt';
 export const fusionSchema = z.object({
   candidates: z.array(
     IncidentCandidateSchema.extend({
-      severity: z
-        .number()
-        .transform((v) => Math.max(1, Math.min(5, Math.round(v))))
-        .pipe(IncidentCandidateSchema.shape.severity),
-      confidence: z.number().transform((v) => Math.max(0, Math.min(1, v))),
+      position: z.array(z.number()).length(2),
+      severity: z.number(),
+      confidence: z.number(),
     }),
   ),
 });
+export function normalizeCandidate(
+  candidate: z.infer<typeof fusionSchema>['candidates'][number],
+): IncidentCandidate {
+  return IncidentCandidateSchema.parse({
+    ...candidate,
+    severity: Math.max(1, Math.min(5, Math.round(candidate.severity))),
+    confidence: Math.max(0, Math.min(1, candidate.confidence)),
+  });
+}
 const text = (s: Signal) => `${s.title} ${s.body}`;
 export function classify(s: Signal): IncidentKind | undefined {
   const t = text(s);
@@ -157,5 +164,5 @@ export async function fuse(service: IntelService, signals: Signal[], ctx: IntelC
       }),
     }),
   );
-  return guardCandidates(response.candidates, groups, ctx);
+  return guardCandidates(response.candidates.map(normalizeCandidate), groups, ctx);
 }
