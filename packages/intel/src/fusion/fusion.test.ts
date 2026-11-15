@@ -5,7 +5,14 @@ import { join } from 'node:path';
 import { makeInitialWorld } from '@bastion/shared';
 import type { IntelContext, Signal } from '@bastion/shared';
 import { loadRegionMini } from '@bastion/shared/fixtures';
-import { clusterSignals, fallbackCluster, fuse, fusionSchema, guardCandidates } from './index';
+import {
+  normalizeCandidate,
+  clusterSignals,
+  fallbackCluster,
+  fuse,
+  fusionSchema,
+  guardCandidates,
+} from './index';
 import { IntelService } from '../port/service';
 import { FakeProvider } from '../llm';
 const region = loadRegionMini();
@@ -85,8 +92,8 @@ it('rejects invented identifiers, locations, merge targets and clamps numeric ou
   };
   expect(guardCandidates([hostile], [signals], ctx)).toEqual([baseline]);
   const parsed = fusionSchema.parse({ candidates: [{ ...baseline, severity: 99, confidence: 2 }] });
-  expect(parsed.candidates[0].severity).toBe(5);
-  expect(parsed.candidates[0].confidence).toBe(1);
+  expect(normalizeCandidate(parsed.candidates[0]).severity).toBe(5);
+  expect(normalizeCandidate(parsed.candidates[0]).confidence).toBe(1);
   expect(clusterSignals([{ ...signals[0], position: [0, 0] }], ctx)).toEqual([]);
 });
 it('replays the validated golden response without invoking a provider', async () => {
