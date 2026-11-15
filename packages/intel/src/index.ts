@@ -6,3 +6,5 @@ export { AnthropicProvider, FakeProvider } from './llm';
 export type { LLMProvider, LLMRequest, ImageInput } from './llm';
 export { ResponseCache, cacheKey } from './cache';
 export { withFallback } from './fallback';
+
+export { TRIAGE_DISCLAIMER } from './triage';
