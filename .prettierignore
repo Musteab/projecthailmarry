@@ -6,3 +6,4 @@ data
 docs/plan
 .data
 packages/shared/src/fixtures/regionMini.data.ts
+.vitest
