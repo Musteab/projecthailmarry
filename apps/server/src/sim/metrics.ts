@@ -3,7 +3,7 @@ import { isPassable } from '../routing/network';
 import type { SystemFactory } from './runtime';
 
 /** Water this deep, or shaking this strong, puts the people living in a cell at risk. */
-export const AT_RISK = { floodDepthM: 0.3, shakeMMI: 7 } as const;
+export const AT_RISK = { floodDepthM: 0.3, shakeMMI: 7, windKph: 120 } as const;
 
 /**
  * The last stage of the pipeline: recomputes the headline numbers from the world. Access
@@ -21,7 +21,8 @@ export const metricsSystem: SystemFactory = (rt) => {
       for (const [id, cell] of Object.entries(world.cells)) {
         if (
           (cell.floodDepthM ?? 0) >= AT_RISK.floodDepthM ||
-          (cell.shakeMMI ?? 0) >= AT_RISK.shakeMMI
+          (cell.shakeMMI ?? 0) >= AT_RISK.shakeMMI ||
+          (cell.windKph ?? 0) >= AT_RISK.windKph
         ) {
           peopleAtRisk += population.get(id) ?? 0;
         }
