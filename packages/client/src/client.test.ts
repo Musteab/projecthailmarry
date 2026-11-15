@@ -201,7 +201,8 @@ describe('mock and runtime', () => {
     const paused = client.world.getState().world.clock.simTime;
     vi.advanceTimersByTime(1000);
     expect(client.world.getState().world.clock.simTime).toBe(paused);
-    await client.control('resume');
+    // The UI calls start for its Play button, including after pause.
+    await client.control('start');
     vi.advanceTimersByTime(1000);
     expect(client.world.getState().world.clock.simTime).toBeGreaterThan(paused);
     client.stop();

@@ -26,7 +26,7 @@ Use a separate recording at **`/?backend=server`**. Sign in as `admin@bastion.de
 
 1. Launch the Johnson Creek flood. The current launcher labels both the Portland flood and mini fixture as “Flash flood”; the Portland flood is the **first Flash flood** in the current catalogue. Confirm Portland is on the map before recording.
 2. Set **Simulation speed** to **60×**. Open **response** and show an **executed** action, then **Grid** and an **isolated** section.
-3. Open **recovery**. When **Southeast Mailwell Drive** appears (after simulation time 18:20), issue that work order. Let the server advance it through **reopened**. Record that whole sequence, then trim waiting time in the edit.
+3. Open **recovery**. When **Southeast Mailwell Drive** appears (after simulation time 18:20), pause the exercise using the bottom-left control, then issue that work order. Press Play to resume and let the server advance it through **reopened**. Record that whole sequence, then trim waiting time in the edit.
 4. Say: “This separate view is running against the real server: decisions and work orders update over the live connection, and the exercise crew completes the repair.”
 
 Server chapter clicks move the camera; they do **not** skip simulated time. Use the speed control. The server Portland map currently has roads and hazard cells but not the authored building meshes of the local city. Do not splice the two views as if they were the same operation; label the insert “Server-backed exercise.”

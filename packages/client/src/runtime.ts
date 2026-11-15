@@ -203,7 +203,12 @@ export function createBastionClient(config: ClientOptions = {}) {
     await refresh(id, generation);
   };
   const control = async (commandName: ControlCommand) => {
-    await command(apiPaths.operationControl(opId()), { command: commandName });
+    // The UI's Play control means resume when an existing exercise is paused.
+    const effective =
+      commandName === 'start' && world.getState().world.operation?.status === 'paused'
+        ? 'resume'
+        : commandName;
+    await command(apiPaths.operationControl(opId()), { command: effective });
     if (commandName === 'reset') data.setState({ briefing: undefined, history: [], current: -1 });
   };
   const setSpeed = (speed: number) =>

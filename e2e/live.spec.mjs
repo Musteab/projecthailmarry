@@ -79,7 +79,8 @@ test('real server: sign in, respond, isolate and reopen repairs in both disaster
     await option.getByRole('button', { name: 'Issue work order', exact: true }).click();
     const orderResponse = await orderPromise;
     expect(orderResponse.status(), await orderResponse.text()).toBe(201);
-    await control({ command: 'resume' });
+    await page.getByRole('button', { name: 'Play exercise', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Pause exercise', exact: true })).toBeVisible();
     await expect(
       page.locator('.work-order').filter({ hasText: expected }).locator('.tag'),
     ).toHaveText('reopened', { timeout: 60000 });
