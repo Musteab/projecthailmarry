@@ -4,7 +4,8 @@ import { AuditEntrySchema } from '@bastion/shared';
 import type { Database } from './database';
 
 export interface AuditInput {
-  operationId: string;
+  /** null for changes that are not part of an operation, such as editing a rule */
+  operationId: string | null;
   simTime: number;
   /** user id, or 'platform' / 'auto' */
   actor: string;

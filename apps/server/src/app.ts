@@ -10,6 +10,7 @@ import { registerHealthRoutes } from './routes/health';
 import { registerOperationRoutes } from './routes/operations';
 import { registerRegionRoutes } from './routes/regions';
 import { registerRestorationRoutes } from './routes/restoration';
+import { registerRuleRoutes } from './routes/rules';
 import { registerScenarioRoutes } from './routes/scenarios';
 
 /**
@@ -53,6 +54,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerOperationRoutes(app, ctx);
   registerActionRoutes(app, ctx);
   registerRestorationRoutes(app, ctx);
+  registerRuleRoutes(app, ctx);
   await registerRealtime(app, ctx);
 
   // Routes owned by @bastion/intel (/api/intel/*, /public/*), when the package provides them.
