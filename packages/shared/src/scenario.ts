@@ -54,6 +54,17 @@ export const HazardSpecSchema = z.discriminatedUnion('kind', [
     sourcePaths: z.array(z.array(LngLatSchema).min(2)).min(1),
     /** [simTime, stage in metres above the channel bed], linearly interpolated */
     stageCurve: z.array(z.tuple([z.number(), z.number()])).min(2),
+    /** Optional overrides of the flood model defaults, so a scenario can be tuned from its file. */
+    tuning: z
+      .object({
+        /** metres of water lost per metre of distance from the channel (default 0.006) */
+        distanceLossPerM: z.number().positive().optional(),
+        /** cells farther than this from the channel never flood (default 700) */
+        maxReachM: z.number().positive().optional(),
+        /** chance a flooded road is left blocked by debris; 0 leaves only scripted debris */
+        debrisChance: z.number().min(0).max(1).optional(),
+      })
+      .optional(),
   }),
   z.object({
     id: z.string(),
@@ -63,6 +74,15 @@ export const HazardSpecSchema = z.discriminatedUnion('kind', [
     magnitude: z.number(),
     depthKm: z.number(),
     originSimTime: z.number(),
+    /** Optional overrides of the earthquake model defaults. */
+    tuning: z
+      .object({
+        /** apparent speed of the shaking front across the map (default 400) */
+        waveSpeedMps: z.number().positive().optional(),
+        /** added to the computed intensity everywhere, to make a quake hit harder or softer */
+        intensityOffset: z.number().optional(),
+      })
+      .optional(),
   }),
   z.object({
     id: z.string(),

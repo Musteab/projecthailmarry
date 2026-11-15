@@ -126,3 +126,15 @@ the real server. No cloud keys or network are needed to play either exercise.
 Client tests cover snapshot/patch replay and caps, stable React selectors, route
 interpolation, session permissions, HTTP errors, WebSocket reconnect cleanup,
 Strict Mode lifecycle, offline motion and local command effects.
+
+## Portland region pack
+
+`loadPortlandRegion()` lazily loads and validates the committed real-geography pack.
+For the larger mock, create a client with
+`createBastionClient({ mock: true, transport: await createPortlandMockTransport() })`
+and pass it to the provider. The default small preview remains region-mini to
+keep startup and tests quick. The existing mock scripts remap unit, facility,
+bridge, road and grid references to Portland entities; final Portland stage
+choreography is provided by MUS-007/008.
+
+Live transport hardening: static region data is validated and cached per backend URL in memory and browser Cache Storage. Offline disk fallback is used only on network failure; 401/403 and invalid schemas remain visible. Credentials and operation state are never cached there. Clock extrapolation stops after two seconds without an authoritative update. Reconnects always resubscribe for a fresh snapshot; a missing initial snapshot closes the connection after ten seconds. Optional `onContractError` on `HttpWsTransport` supports diagnostics without logging tokens or payloads.

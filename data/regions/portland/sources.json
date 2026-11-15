@@ -1,0 +1,26 @@
+{
+  "bbox": [
+    -122.7,
+    45.44,
+    -122.56,
+    45.54
+  ],
+  "population": 250000,
+  "osmSnapshot": "2026-11-15T04:51:50Z",
+  "hashes": {
+    "roads.json": "3406f7d3c72bd641c58d31cc7fd7d2c1c8461bd65ede6cf42a8676a9b61a73f2",
+    "facilities.json": "33a63dae52dcd6c54e1f80e38a10a0bca3d5b3ded9d7f66cc3d534c8ba08e949",
+    "buildings.json": "e20286683068bbe692da3d1cd71935b3fddca657acd371a90cf04487dc2263c0",
+    "terrain-12-652-1464.png": "312c9b0ad5b2b9f6c3250d74d37142adff4e4923668d0b56f85782167c307a9b",
+    "terrain-12-652-1465.png": "281786394430a401a23d126c9dee8dd94c895b6c061b21323905df9e458d1dd9",
+    "terrain-12-651-1464.png": "a9453154f42a336ee09d19bd0b9b6f45e1e1ee813db4de0f478adc7a894e31f6",
+    "terrain-12-651-1465.png": "4994b0b950483fd781df484d1da1d35e19570a06d1fa98931996dad424691c0c",
+    "terrain-12-653-1464.png": "2555d5dc283b7e39911973103cce1d938351dc5cd04cbb17b270fb75daa4ea6c",
+    "terrain-12-652-1466.png": "95ec793d171fdfbe9eb912378f88619a6258cdd9d0f0116e78e3b4b97d9368e5",
+    "terrain-12-653-1465.png": "e6cbe1604f0e4d783623d7c93a586dd9ff4e1485487076821181544d7f5a2568",
+    "terrain-12-651-1466.png": "194101db7986dca4b53f54e6b92836b8a3e1cd901b123085511aafe975657ef0",
+    "terrain-12-653-1466.png": "3650f71d8a8c1f75be7d68c59046418dbb872c243f55150d4eb8334ac8a68141"
+  },
+  "elevation": "AWS Terrain Tiles Terrarium, zoom 12",
+  "populationMethod": "OSM building footprint weights; synthetic planning total"
+}

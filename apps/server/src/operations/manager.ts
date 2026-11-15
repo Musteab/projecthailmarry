@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type {
+  Action,
   ControlRequest,
   CreateOperationRequest,
   Inject,
+  IntelPort,
   Operation,
   ServerMessage,
   Signal,
@@ -10,8 +12,10 @@ import type {
   User,
   WorldSnapshot,
 } from '@bastion/shared';
+import { insertAudit } from '../db/audit';
 import type { Database } from '../db/database';
 import { endInterruptedOperations, insertOperation, updateOperationStatus } from '../db/operations';
+import { listRules } from '../db/rules';
 import { ApiError, badRequest, conflict, notFound } from '../errors';
 import type { RegionRegistry } from '../region/pack';
 import type { ScenarioCatalog } from '../scenarios/catalog';
@@ -32,6 +36,8 @@ export interface OperationManagerOptions {
   scenarios: ScenarioCatalog;
   /** defaults to the standard pipeline */
   systems?: () => SystemFactory[];
+  /** the AI behind signal fusion and triage; defaults to the rule-based fallback */
+  intel?: IntelPort;
   logger?: RuntimeLogger;
 }
 
@@ -63,13 +69,16 @@ export class OperationManager {
         `Scenario "${scenario.id}" is written for region "${scenario.regionId}", not "${operation.regionId}"`,
       );
     }
-    return new OperationRuntime({
+    const runtime = new OperationRuntime({
       operation,
       index,
       scenario: scenario ?? null,
-      systems: (this.options.systems ?? defaultSystems)(),
+      systems: this.options.systems?.() ?? defaultSystems(this.options.intel),
       logger: this.options.logger,
+      audit: (record) => insertAudit(this.options.db, { operationId: operation.id, ...record }),
     });
+    runtime.actions.setRules(listRules(this.options.db));
+    return runtime;
   }
 
   create(request: CreateOperationRequest, user: User): Operation {
@@ -190,6 +199,32 @@ export class OperationManager {
     const signal = runtime.ingestSignal(input);
     this.flush(runtime);
     return signal;
+  }
+
+  /** Finds an action by id in whichever operation holds it. */
+  findAction(actionId: string): { runtime: OperationRuntime; action: Action } {
+    for (const runtime of this.runtimes.values()) {
+      const action = runtime.world.actions[actionId];
+      if (action) return { runtime, action };
+    }
+    throw notFound(`Action "${actionId}"`);
+  }
+
+  /** Runs a command against an operation and sends its effects to subscribers at once. */
+  act<T>(operationId: string, command: (runtime: OperationRuntime) => T): T {
+    const runtime = this.require(operationId);
+    if (runtime.operation.status === 'ended') throw conflict('The operation has ended');
+    try {
+      return command(runtime);
+    } finally {
+      this.flush(runtime);
+    }
+  }
+
+  /** Reloads the agency rules into every live operation after one is edited. */
+  refreshRules(): void {
+    const rules = listRules(this.options.db);
+    for (const runtime of this.runtimes.values()) runtime.actions.setRules(rules);
   }
 
   // ---- time ----------------------------------------------------------------------------

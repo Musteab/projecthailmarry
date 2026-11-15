@@ -10,7 +10,7 @@ export const anchorClock = (clock: Clock, receivedAtMs: number): AnchoredClock =
 /** Unanchored wire clocks stay at their last known sim time. */
 export function simTimeNow(clock: Clock, nowMs: number): number {
   const received = (clock as Partial<AnchoredClock>).receivedAtMs ?? nowMs;
-  const time = clock.simTime + (Math.max(0, nowMs - received) / 1000) * clock.speed;
+  const time = clock.simTime + (Math.min(2000, Math.max(0, nowMs - received)) / 1000) * clock.speed;
   return Math.min(time, clock.durationSimSec ?? Infinity);
 }
 

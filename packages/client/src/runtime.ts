@@ -23,6 +23,7 @@ import { createSession } from './session';
 import type { SessionStorage } from './session';
 import { ApiError, HttpWsTransport } from './transport';
 import type { Method, Transport } from './transport';
+import { RegionCache } from './transport/region-cache';
 import { MockTransport } from './transport/mock';
 
 export type DemoStep = ScenarioBeat;
@@ -34,6 +35,7 @@ export interface BastionConfig {
 export interface ClientOptions extends BastionConfig {
   transport?: Transport;
   storage?: SessionStorage;
+  cacheStorage?: CacheStorage;
 }
 interface DataState {
   region?: RegionStatic;
@@ -91,6 +93,15 @@ export function createBastionClient(config: ClientOptions = {}) {
       throw error;
     }
   };
+  const regionCache = new RegionCache(config.cacheStorage);
+  const loadRegion = (id: string) => {
+    const path = apiPaths.regionStatic(id);
+    const url = new URL(
+      path,
+      config.apiUrl || globalThis.location?.origin || 'http://localhost:8787',
+    ).href;
+    return regionCache.load(url, () => request<RegionStatic>('GET', path));
+  };
   const refresh = async (id: string, generation = epoch) => {
     const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(id));
     if (generation === epoch && world.getState().world.operation.id === id)
@@ -107,10 +118,7 @@ export function createBastionClient(config: ClientOptions = {}) {
       data.setState({ scenarios, rules });
       if (scenarios[0]) {
         data.setState({ regionLoading: true });
-        const region = await request<RegionStatic>(
-          'GET',
-          apiPaths.regionStatic(scenarios[0].regionId),
-        );
+        const region = await loadRegion(scenarios[0].regionId);
         if (generation === epoch) data.setState({ region });
       }
     } finally {
@@ -128,7 +136,7 @@ export function createBastionClient(config: ClientOptions = {}) {
       ticket = ++launchEpoch;
     const scenario = data.getState().scenarios.find((s) => s.id === scenarioId);
     if (!scenario) throw new Error('Select a scenario from the loaded catalogue');
-    const region = await request<RegionStatic>('GET', apiPaths.regionStatic(scenario.regionId));
+    const region = await loadRegion(scenario.regionId);
     const operation = await request<Operation>('POST', apiPaths.operations, {
       regionId: scenario.regionId,
       scenarioId,
@@ -180,6 +188,7 @@ export function createBastionClient(config: ClientOptions = {}) {
     command(apiPaths.operationControl(opId()), { command: 'speed', speed });
   const inject = (input: Inject) => command(apiPaths.operationInjects(opId()), input);
   function logout() {
+    regionCache.clear();
     epoch++;
     launchEpoch++;
     disconnect?.();

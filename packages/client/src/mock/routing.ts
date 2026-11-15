@@ -11,96 +11,113 @@ export function distance(a: LngLat, b: LngLat) {
   const x = (a[0] - b[0]) * Math.cos(((a[1] + b[1]) * Math.PI) / 360);
   return Math.hypot(x, a[1] - b[1]) * 111320;
 }
+const snapCache = new WeakMap<RegionStatic, Map<string, RegionStatic['nodes'][number]>>();
 export function nearestNode(region: RegionStatic, position: LngLat) {
-  return region.nodes.reduce((best, node) =>
-    distance(node.position, position) < distance(best.position, position) ? node : best,
-  );
+  let cache = snapCache.get(region);
+  if (!cache) {
+    cache = new Map();
+    snapCache.set(region, cache);
+  }
+  const key = position.join(',');
+  const saved = cache.get(key);
+  if (saved) return saved;
+  const cos = Math.cos((position[1] * Math.PI) / 180);
+  let best = region.nodes[0],
+    cost = Infinity;
+  for (const node of region.nodes) {
+    const d = ((node.position[0] - position[0]) * cos) ** 2 + (node.position[1] - position[1]) ** 2;
+    if (d < cost) {
+      best = node;
+      cost = d;
+    }
+  }
+  cache.set(key, best);
+  return best;
+}
+type Arc = { to: string; edge: RegionStatic['edges'][number]; reverse: boolean };
+const graphCache = new WeakMap<
+  RegionStatic,
+  { forward: Map<string, Arc[]>; backward: Map<string, Arc[]> }
+>();
+function graph(region: RegionStatic) {
+  let cached = graphCache.get(region);
+  if (cached) return cached;
+  cached = { forward: new Map(), backward: new Map() };
+  const add = (from: string, to: string, edge: RegionStatic['edges'][number], reverse: boolean) => {
+    cached!.forward.set(from, [...(cached!.forward.get(from) ?? []), { to, edge, reverse }]);
+    cached!.backward.set(to, [...(cached!.backward.get(to) ?? []), { to: from, edge, reverse }]);
+  };
+  for (const edge of region.edges) {
+    add(edge.from, edge.to, edge, false);
+    if (!edge.oneway) add(edge.to, edge.from, edge, true);
+  }
+  graphCache.set(region, cached);
+  return cached;
+}
+function shortest(
+  region: RegionStatic,
+  roads: Record<string, RoadState>,
+  starts: string[],
+  backward = false,
+  end?: string,
+) {
+  const costs = new Map(starts.map((id) => [id, 0])),
+    previous = new Map<
+      string,
+      { from: string; edge: RegionStatic['edges'][number]; reverse: boolean }
+    >();
+  const heap: [number, string][] = [];
+  const push = (item: [number, string]) => {
+    heap.push(item);
+    let i = heap.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (heap[p][0] <= item[0]) break;
+      heap[i] = heap[p];
+      i = p;
+    }
+    heap[i] = item;
+  };
+  const pop = () => {
+    const first = heap[0],
+      last = heap.pop()!;
+    if (heap.length) {
+      let i = 0;
+      while (i * 2 + 1 < heap.length) {
+        let c = i * 2 + 1;
+        if (c + 1 < heap.length && heap[c + 1][0] < heap[c][0]) c++;
+        if (last[0] <= heap[c][0]) break;
+        heap[i] = heap[c];
+        i = c;
+      }
+      heap[i] = last;
+    }
+    return first;
+  };
+  starts.forEach((id) => push([0, id]));
+  const adjacency = graph(region)[backward ? 'backward' : 'forward'];
+  while (heap.length) {
+    const [cost, current] = pop();
+    if (cost !== costs.get(current)) continue;
+    if (current === end) break;
+    for (const arc of adjacency.get(current) ?? []) {
+      if (roads[arc.edge.id] && roads[arc.edge.id].status !== 'open') continue;
+      const next = cost + arc.edge.lengthM / (arc.edge.speedKph / 3.6);
+      if (next < (costs.get(arc.to) ?? Infinity)) {
+        costs.set(arc.to, next);
+        previous.set(arc.to, { from: current, edge: arc.edge, reverse: arc.reverse });
+        push([next, arc.to]);
+      }
+    }
+  }
+  return { costs, previous };
 }
 export interface MockRoute {
   route: LngLat[];
   routeEdgeIds: string[];
   seconds: number;
 }
-type Hop = { from: string; edge: RegionStatic['edges'][number]; reverse: boolean };
-type Arc = { next: string; edge: RegionStatic['edges'][number]; reverse: boolean };
-const graphs = new WeakMap<
-  RegionStatic,
-  { forward: Map<string, Arc[]>; backward: Map<string, Arc[]> }
->();
-function graph(region: RegionStatic) {
-  let result = graphs.get(region);
-  if (result) return result;
-  result = { forward: new Map(), backward: new Map() };
-  for (const node of region.nodes) {
-    result.forward.set(node.id, []);
-    result.backward.set(node.id, []);
-  }
-  for (const edge of region.edges) {
-    result.forward.get(edge.from)?.push({ next: edge.to, edge, reverse: false });
-    result.backward.get(edge.to)?.push({ next: edge.from, edge, reverse: false });
-    if (!edge.oneway) {
-      result.forward.get(edge.to)?.push({ next: edge.from, edge, reverse: true });
-      result.backward.get(edge.from)?.push({ next: edge.to, edge, reverse: true });
-    }
-  }
-  graphs.set(region, result);
-  return result;
-}
-/** Binary-heap Dijkstra. Reverse multi-source search computes access to all hospitals once. */
-function search(
-  region: RegionStatic,
-  roads: Record<string, RoadState>,
-  starts: string[],
-  reverse = false,
-  end?: string,
-) {
-  const adjacency = graph(region)[reverse ? 'backward' : 'forward'];
-  const costs = new Map(starts.map((id) => [id, 0]));
-  const previous = new Map<string, Hop>();
-  const heap: { id: string; cost: number }[] = [];
-  const push = (item: { id: string; cost: number }) => {
-    let i = heap.length;
-    heap.push(item);
-    while (i > 0) {
-      const parent = (i - 1) >> 1;
-      if (heap[parent].cost <= item.cost) break;
-      heap[i] = heap[parent];
-      i = parent;
-    }
-    heap[i] = item;
-  };
-  for (const id of starts) push({ id, cost: 0 });
-  while (heap.length) {
-    const current = heap[0],
-      last = heap.pop()!;
-    if (heap.length) {
-      let i = 0;
-      while (i * 2 + 1 < heap.length) {
-        let child = i * 2 + 1;
-        if (child + 1 < heap.length && heap[child + 1].cost < heap[child].cost) child++;
-        if (last.cost <= heap[child].cost) break;
-        heap[i] = heap[child];
-        i = child;
-      }
-      heap[i] = last;
-    }
-    if (current.cost !== costs.get(current.id)) continue;
-    if (current.id === end) break;
-    for (const arc of adjacency.get(current.id) ?? []) {
-      const state = roads[arc.edge.id];
-      if (state && state.status !== 'open' && !state.speedFactor) continue;
-      const candidate =
-        current.cost + arc.edge.lengthM / ((arc.edge.speedKph / 3.6) * (state?.speedFactor ?? 1));
-      if (candidate < (costs.get(arc.next) ?? Infinity)) {
-        costs.set(arc.next, candidate);
-        previous.set(arc.next, { from: current.id, edge: arc.edge, reverse: arc.reverse });
-        push({ id: arc.next, cost: candidate });
-      }
-    }
-  }
-  return { costs, previous };
-}
-/** One-way-aware routing on the supplied road graph, excluding impassable roads. */
+/** Small-fixture Dijkstra; respects one-way edges and every non-open road state. */
 export function routeBetween(
   region: RegionStatic,
   roads: Record<string, RoadState>,
@@ -109,15 +126,14 @@ export function routeBetween(
 ): MockRoute | undefined {
   const start = nearestNode(region, from).id,
     end = nearestNode(region, to).id;
-  const { costs, previous } = search(region, roads, [start], false, end);
+  const { costs, previous } = shortest(region, roads, [start], false, end);
   if (!costs.has(end)) return undefined;
-  const hops: Hop[] = [];
+  const hops = [];
   for (let node = end; node !== start;) {
     const step = previous.get(node)!;
-    hops.push(step);
+    hops.unshift(step);
     node = step.from;
   }
-  hops.reverse();
   const route: LngLat[] = [];
   for (const { edge, reverse } of hops) {
     const geometry = reverse ? [...edge.geometry].reverse() : edge.geometry;
@@ -139,15 +155,19 @@ export function analyzeAccess(
       !world.facilities[f.id]?.onDivert,
   );
   const travel = (roads: WorldSnapshot['roads']) => {
-    const { costs } = search(
+    const costs = shortest(
       region,
       roads,
       hospitals.map((f) => f.nodeId),
       true,
+    ).costs;
+    return new Map(
+      region.nodes.map((node) => [
+        node.id,
+        costs.has(node.id) ? Math.max(1, costs.get(node.id)!) / 60 : null,
+      ]),
     );
-    return new Map(region.nodes.map((n) => [n.id, costs.has(n.id) ? costs.get(n.id)! / 60 : null]));
   };
-  const cellNodes = new Map(region.cells.map((c) => [c.id, nearestNode(region, c.center).id]));
   const before = travel(world.roads);
   const candidates = Object.keys(world.roads)
     .filter((id) => world.roads[id].status !== 'open' && region.edges.some((e) => e.id === id))
@@ -171,7 +191,7 @@ export function analyzeAccess(
       for (const id of candidate.edgeIds) delete roads[id];
       const after = travel(roads);
       const cells = region.cells.map((cell) => {
-        const node = cellNodes.get(cell.id)!;
+        const node = nearestNode(region, cell.center).id;
         return { cellId: cell.id, beforeMin: before.get(node)!, afterMin: after.get(node)! };
       });
       const optionId = `option-${candidate.id}`;
@@ -217,10 +237,10 @@ export function analyzeAccess(
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   options.forEach((option, i) => (option.rank = i + 1));
   const noAccess = region.cells
-    .filter((c) => before.get(cellNodes.get(c.id)!) === null)
+    .filter((c) => before.get(nearestNode(region, c.center).id) === null)
     .reduce((sum, c) => sum + c.population, 0);
   const outsideThreshold = region.cells
-    .filter((c) => (before.get(cellNodes.get(c.id)!) ?? Infinity) > 15)
+    .filter((c) => (before.get(nearestNode(region, c.center).id) ?? Infinity) > 15)
     .reduce((sum, c) => sum + c.population, 0);
   return {
     impacts,

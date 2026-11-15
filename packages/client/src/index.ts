@@ -9,5 +9,5 @@ export * from './helpers';
 export * from './runtime';
 export * from './hooks';
 export * from './mock/recording';
-
 export * from './mock/scripts';
+export { loadPortlandRegion, createPortlandMockTransport } from './mock/portland';
