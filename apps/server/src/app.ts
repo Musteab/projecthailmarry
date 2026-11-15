@@ -5,6 +5,7 @@ import { installErrorHandling } from './errors';
 import { createIntelHost } from './intel/host';
 import { registerRealtime } from './realtime/hub';
 import { registerActionRoutes } from './routes/actions';
+import { registerAdminRoutes } from './routes/admin';
 import { registerAuthRoutes } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { registerOperationRoutes } from './routes/operations';
@@ -12,6 +13,8 @@ import { registerRegionRoutes } from './routes/regions';
 import { registerRestorationRoutes } from './routes/restoration';
 import { registerRuleRoutes } from './routes/rules';
 import { registerScenarioRoutes } from './routes/scenarios';
+import type { NotFoundFallback } from './static';
+import { registerWebApp } from './static';
 
 /**
  * Builds the Fastify instance without starting it, so tests can drive it with `app.inject`.
@@ -28,7 +31,11 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
     bodyLimit: 1024 * 1024,
   });
 
-  installErrorHandling(app);
+  // Filled in at the end, once the web app (if any) has been registered.
+  const web: { fallback?: NotFoundFallback } = {};
+  installErrorHandling(app, {
+    onNotFound: (request, reply) => web.fallback?.(request, reply) ?? false,
+  });
   await app.register(cors, {
     origin: config.corsOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -55,6 +62,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerActionRoutes(app, ctx);
   registerRestorationRoutes(app, ctx);
   registerRuleRoutes(app, ctx);
+  registerAdminRoutes(app, ctx);
   await registerRealtime(app, ctx);
 
   // Routes owned by @bastion/intel (/api/intel/*, /public/*), when the package provides them.
@@ -63,6 +71,9 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       host: createIntelHost({ operations: ctx.operations, regions: ctx.regions, auth: ctx.auth }),
     });
   }
+
+  // Last, so the API, the socket and the public feeds always win over the web app.
+  web.fallback = await registerWebApp(app, ctx);
 
   app.addHook('onClose', async () => ctx.close());
 

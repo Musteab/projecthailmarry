@@ -6,20 +6,22 @@
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
     "start": "tsx --env-file-if-exists=../../.env src/main.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "smoke": "tsx --env-file-if-exists=../../.env scripts/smoke.ts"
   },
   "dependencies": {
     "@bastion/intel": "workspace:*",
     "@bastion/shared": "workspace:*",
     "@fastify/cors": "^11.4.3",
+    "@fastify/static": "^10.1.11",
     "@fastify/websocket": "^11.3.7",
     "fastify": "^5.12.8",
     "jose": "^6.2.17",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/ws": "^8.18.2",
-    "tsx": "^4.23.15",
     "ws": "^8.23.0"
   }
 }

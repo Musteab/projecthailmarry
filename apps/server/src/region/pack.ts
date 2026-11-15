@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import type { RegionStatic } from '@bastion/shared';
 import { RegionStaticSchema } from '@bastion/shared';
 import { loadRegionMini, MINI_REGION_ID } from '@bastion/shared/fixtures';
@@ -58,7 +59,10 @@ export function readRegionPack(regionsDir: string, regionId: string): RegionStat
  * (large) static payload is serialized once.
  */
 export class RegionRegistry {
-  private readonly loaded = new Map<string, { region: RegionStatic; json: string }>();
+  private readonly loaded = new Map<
+    string,
+    { region: RegionStatic; json: string; gzip?: Buffer }
+  >();
   private readonly indexes = new Map<string, RegionIndex>();
 
   constructor(
@@ -90,7 +94,10 @@ export class RegionRegistry {
       regionId === MINI_REGION_ID && !existsSync(join(this.regionsDir, regionId))
         ? loadRegionMini()
         : readRegionPack(this.regionsDir, regionId);
-    const entry = { region, json: JSON.stringify(region) };
+    const entry: { region: RegionStatic; json: string; gzip?: Buffer } = {
+      region,
+      json: JSON.stringify(region),
+    };
     this.loaded.set(regionId, entry);
     return entry;
   }
@@ -114,6 +121,13 @@ export class RegionRegistry {
   /** The region as JSON text, serialized once. */
   getJson(regionId: string): string | undefined {
     return this.entry(regionId)?.json;
+  }
+
+  /** The same, gzipped once. A city-sized pack is several megabytes of JSON. */
+  getJsonGzip(regionId: string): Buffer | undefined {
+    const entry = this.entry(regionId);
+    if (!entry) return undefined;
+    return (entry.gzip ??= gzipSync(entry.json));
   }
 
   /**

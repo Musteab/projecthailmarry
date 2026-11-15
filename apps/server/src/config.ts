@@ -26,6 +26,8 @@ const EnvSchema = z.object({
   SEED_DEMO_PASSWORD: z.string().min(8, 'must be at least 8 characters').optional(),
   REGION_ID: z.string().default('portland'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  SERVE_WEB: z.enum(['true', 'false']).optional(),
+  WEB_DIST_DIR: z.string().default('./apps/web/dist'),
 });
 
 export interface Config {
@@ -46,6 +48,10 @@ export interface Config {
   validateResponses: boolean;
   /** expose region-mini and scenario-mini (on outside production) */
   includeFixtures: boolean;
+  /** serve the built web app from this process (on in production; SERVE_WEB overrides) */
+  serveWeb: boolean;
+  /** absolute path of the built web app */
+  webDistDir: string;
 }
 
 export class ConfigError extends Error {
@@ -92,5 +98,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     logLevel: env.NODE_ENV === 'test' ? 'silent' : env.LOG_LEVEL,
     validateResponses: !production,
     includeFixtures: !production,
+    serveWeb: env.SERVE_WEB === undefined ? production : env.SERVE_WEB === 'true',
+    webDistDir: fromRoot(env.WEB_DIST_DIR),
   };
 }

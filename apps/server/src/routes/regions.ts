@@ -21,7 +21,14 @@ export function registerRegionRoutes(app: FastifyInstance, ctx: AppContext): voi
         throw error;
       }
       if (json === undefined) throw notFound(`Region "${regionId}"`);
-      return reply.type('application/json; charset=utf-8').send(json);
+      void reply
+        .type('application/json; charset=utf-8')
+        .header('vary', 'accept-encoding')
+        .header('cache-control', 'private, max-age=300');
+      if (String(request.headers['accept-encoding'] ?? '').includes('gzip')) {
+        return reply.header('content-encoding', 'gzip').send(ctx.regions.getJsonGzip(regionId));
+      }
+      return reply.send(json);
     },
   );
 }
