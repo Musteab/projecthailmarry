@@ -25,7 +25,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     launchOptions: {
       ...(existsSync(chrome) ? { executablePath: chrome } : {}),
-      args: ['--enable-unsafe-swiftshader'],
+      // GPU-less CI exercises the shipped 2D fallback; local rehearsals retain full 3D.
+      args: process.env.E2E_2D === '1' ? ['--disable-webgl'] : ['--enable-unsafe-swiftshader'],
     },
   },
   projects: [
