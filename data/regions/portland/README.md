@@ -28,3 +28,5 @@ Run `pnpm --filter @bastion/region-pack region:build --offline` using the origin
 `.data/region-cache`. `sources.json` records hashes for reproducibility. Raw data
 is not committed; a fresh upstream download may differ. The committed pack is
 immediately usable without downloads. See `docs/demo/ATTRIBUTION.md` for sources.
+
+A synthetic western reserve USAR crew is seeded at `way-367749332`, the northernmost west-side fire station, to make cross-river route comparisons possible. The generator applies the same deterministic selection; these are exercise resources, not actual station staffing. Total units: 45.

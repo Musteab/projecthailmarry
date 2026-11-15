@@ -173,6 +173,12 @@ export function makePack(
     if (f.kind === 'substation') add(f, 'utility_crew', 'utility');
     if (f.kind === 'eoc') add(f, 'police', 'ema');
   }
+  // Preserve the initial crews, then add a western reserve for river-crossing exercises.
+  const western = fs
+    .filter((f) => f.kind === 'fire_station' && f.position[0] < -122.68)
+    .sort((a, b) => b.position[1] - a.position[1])[0];
+  if (western && !units.some((u) => u.kind === 'usar' && u.homeFacilityId === western.id))
+    add(western, 'usar', 'fire_rescue');
   return RegionStaticSchema.parse({
     config: {
       id,
