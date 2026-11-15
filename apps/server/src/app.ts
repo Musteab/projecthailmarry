@@ -1,17 +1,35 @@
+import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
+import type { AppContext } from './context';
+import { installErrorHandling } from './errors';
+import { registerHealthRoutes } from './routes/health';
+import { registerRegionRoutes } from './routes/regions';
+import { registerScenarioRoutes } from './routes/scenarios';
 
-export interface AppOptions {
-  /** Disable request logging (tests). */
-  quiet?: boolean;
-}
-
-/** Builds the Fastify instance without starting it, so tests can use `app.inject`. */
-export function buildApp(options: AppOptions = {}): FastifyInstance {
+/**
+ * Builds the Fastify instance without starting it, so tests can drive it with `app.inject`.
+ * Closing the app also closes the context (database).
+ */
+export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
+  const { config } = ctx;
   const app = Fastify({
-    logger: options.quiet ? false : { level: process.env.LOG_LEVEL ?? 'info' },
+    logger: config.logLevel === 'silent' ? false : { level: config.logLevel },
+    // Region static payloads and world snapshots are large; request bodies never are.
+    bodyLimit: 1024 * 1024,
   });
 
-  app.get('/api/health', async () => ({ ok: true }));
+  installErrorHandling(app);
+  await app.register(cors, {
+    origin: config.corsOrigins,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
+
+  registerHealthRoutes(app);
+  registerScenarioRoutes(app, ctx);
+  registerRegionRoutes(app, ctx);
+
+  app.addHook('onClose', async () => ctx.close());
 
   return app;
 }

@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.34.9",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "concurrently -k -n server,web -c blue,magenta \"pnpm --filter @bastion/server dev\" \"pnpm --filter @bastion/web dev\"",
