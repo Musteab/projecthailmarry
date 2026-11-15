@@ -15,6 +15,9 @@ import type { RegionIndex } from '../region/index';
 import { RoadNetwork } from '../routing/network';
 import { WorldState } from '../world/WorldState';
 import { applyInject } from './injects';
+import type { AuditRecord } from '../actions/service';
+import { ActionService } from '../actions/service';
+import { GridService } from '../grid/grid';
 import { UnitService } from '../units/units';
 import { Prng } from './prng';
 
@@ -46,6 +49,8 @@ export interface RuntimeOptions {
   /** in pipeline order */
   systems: SystemFactory[];
   logger?: RuntimeLogger;
+  /** receives an entry for every action transition; the manager writes it to the database */
+  audit?: (record: AuditRecord) => void;
 }
 
 /**
@@ -62,6 +67,10 @@ export class OperationRuntime {
   readonly repairCandidates = new Map<string, RepairCandidate>();
   /** Moves units; the decision engine and work orders send them through this. */
   readonly units: UnitService;
+  /** The pipeline every action goes through: rules, approval, execution, audit. */
+  readonly actions: ActionService;
+  /** The distribution grid: threat detection, isolation and its consequences. */
+  readonly grid: GridService;
   /** Running totals that are not derivable from the current world. */
   readonly stats = { peopleRescued: 0 };
   /** Signals that arrived since the previous step, for systems that react to them. */
@@ -107,6 +116,8 @@ export class OperationRuntime {
     }));
     this.world = new WorldState(initial);
     this.units = new UnitService(this);
+    this.actions = new ActionService(this, options.audit ?? (() => undefined));
+    this.grid = new GridService(this);
     this.systems = options.systems.map((create) => create(this));
   }
 
