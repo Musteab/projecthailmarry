@@ -12,7 +12,7 @@ const command = (args) => args.map(quote).join(' ');
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 export default defineConfig({
   testDir: root + 'e2e',
-  timeout: 180000,
+  timeout: 300000,
   expect: { timeout: 45000 },
   workers: 1,
   retries: 0,
@@ -25,7 +25,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     launchOptions: {
       ...(existsSync(chrome) ? { executablePath: chrome } : {}),
-      args: ['--enable-unsafe-swiftshader'],
+      // GPU-less CI exercises the shipped 2D fallback; local rehearsals retain full 3D.
+      args: process.env.E2E_2D === '1' ? ['--disable-webgl'] : ['--enable-unsafe-swiftshader'],
     },
   },
   projects: [

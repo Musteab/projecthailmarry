@@ -1,5 +1,5 @@
 import type { ApiErrorBody } from '@bastion/shared';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 
 /**
@@ -54,8 +54,13 @@ export function describeIssues(error: ZodError): { path: string; message: string
 }
 
 /** Makes every failure, including unknown routes, answer with the contract error body. */
-export function installErrorHandling(app: FastifyInstance): void {
+export function installErrorHandling(
+  app: FastifyInstance,
+  options: { onNotFound?: (request: FastifyRequest, reply: FastifyReply) => boolean } = {},
+): void {
   app.setNotFoundHandler((request, reply) => {
+    // The web app, when served from this process, answers page routes it does not know.
+    if (options.onNotFound?.(request, reply)) return;
     void reply
       .status(404)
       .send(errorBody('not_found', `Route ${request.method} ${request.url} not found`));

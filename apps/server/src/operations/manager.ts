@@ -57,7 +57,7 @@ export class OperationManager {
   }
 
   // ---- lifecycle -----------------------------------------------------------------------
-  private buildRuntime(operation: Operation): OperationRuntime {
+  private buildRuntime(operation: Operation, commandGeneration = 0): OperationRuntime {
     const index = this.options.regions.index(operation.regionId);
     if (!index) throw badRequest(`Unknown region "${operation.regionId}"`);
     const scenario = operation.scenarioId ? this.options.scenarios.get(operation.scenarioId) : null;
@@ -71,6 +71,7 @@ export class OperationManager {
     }
     const runtime = new OperationRuntime({
       operation,
+      commandGeneration,
       index,
       scenario: scenario ?? null,
       systems: this.options.systems?.() ?? defaultSystems(this.options.intel),
@@ -95,7 +96,7 @@ export class OperationManager {
       ? this.options.scenarios.get(request.scenarioId)?.name
       : undefined;
     const operation: Operation = {
-      id: `op-${randomUUID().slice(0, 8)}`,
+      id: `op-${randomUUID()}`,
       regionId: request.regionId,
       scenarioId: request.scenarioId,
       mode: request.mode,
@@ -172,7 +173,10 @@ export class OperationManager {
         break;
       case 'reset': {
         // A fresh world from the same scenario and seed; subscribers get a new snapshot.
-        runtime = this.buildRuntime({ ...runtime.operation, status: 'ready' });
+        runtime = this.buildRuntime(
+          { ...runtime.operation, status: 'ready' },
+          runtime.world.commandGeneration + 1,
+        );
         this.runtimes.set(operationId, runtime);
         updateOperationStatus(this.options.db, operationId, 'ready');
         this.emit(operationId, { t: 'snapshot', world: runtime.world.toSnapshot() });
@@ -219,6 +223,20 @@ export class OperationManager {
     } finally {
       this.flush(runtime);
     }
+  }
+
+  /** Ends every operation and forgets them all. Returns how many were still active. */
+  endAll(): number {
+    let ended = 0;
+    for (const runtime of this.runtimes.values()) {
+      if (runtime.operation.status === 'ended') continue;
+      this.setStatus(runtime, 'ended');
+      this.flush(runtime);
+      ended++;
+    }
+    this.runtimes.clear();
+    this.listeners.clear();
+    return ended;
   }
 
   /** Finds the operation that holds a work order. */

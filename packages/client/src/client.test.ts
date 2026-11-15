@@ -7,6 +7,7 @@ import { createWorldStore } from './store';
 import { MockTransport } from './transport/mock';
 import { createBastionClient } from './runtime';
 import { HttpWsTransport } from './transport';
+import type { Method } from './transport';
 
 afterEach(() => vi.useRealTimers());
 
@@ -182,6 +183,25 @@ describe('session', () => {
 });
 
 describe('mock and runtime', () => {
+  it('does not overwrite streamed command results with a stale HTTP snapshot', async () => {
+    vi.useFakeTimers();
+    const transport = new MockTransport();
+    const client = createBastionClient({ mock: true, transport });
+    await client.start();
+    const stale = structuredClone(client.world.getState().world);
+    const original = transport.request.bind(transport);
+    vi.spyOn(transport, 'request').mockImplementation(
+      async <T>(method: Method, path: string, body?: unknown): Promise<T> => {
+        if (method === 'GET' && path === `/api/operations/${stale.operation.id}`) return stale as T;
+        return original<T>(method, path, body);
+      },
+    );
+    client.world.setState({ connection: 'live' });
+    await client.control('pause');
+    expect(client.world.getState().world.operation.status).toBe('paused');
+    client.stop();
+  });
+
   it('boots offline, moves units, pauses/resumes and cleans up timers', async () => {
     vi.useFakeTimers();
     const client = createBastionClient({ mock: true });
@@ -201,7 +221,8 @@ describe('mock and runtime', () => {
     const paused = client.world.getState().world.clock.simTime;
     vi.advanceTimersByTime(1000);
     expect(client.world.getState().world.clock.simTime).toBe(paused);
-    await client.control('resume');
+    // The UI calls start for its Play button, including after pause.
+    await client.control('start');
     vi.advanceTimersByTime(1000);
     expect(client.world.getState().world.clock.simTime).toBeGreaterThan(paused);
     client.stop();

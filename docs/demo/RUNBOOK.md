@@ -44,4 +44,6 @@ Record a backup video on the presentation laptop before leaving for the venue. R
 
 Package commands are available now. Dominic owns root aliases and CI: add root `demo:prewarm` / `demo:check` aliases if desired. Thant can display `useDemoDirector().workflow.error` and the current workflow title; existing timeline controls require no changes. The pure hook `useDemoHotkeys()` is idempotent with the provider registration.
 
-Known backend issue: [action/work-order IDs collide across retained operations](https://github.com/Musteab/projecthailmarry/issues/23). Repeat rehearsals currently use a fresh backend per flood/quake pair. Until Dominic fixes the lookup, restart between repeated stage runs; the isolated harness does not claim to resolve that application bug. All six isolated runs now reach reopening with distinct flood/quake crews, hospitals and top repair roads.
+Repeated-run command routing is fixed: action/work-order IDs identify the operation and reset generation. The isolated demo harness remains useful for reproducibility, but restarting between rehearsals is no longer required for issue #23. Three repeated browser journeys also verify both server-backed scenarios on one backend.
+
+For a short recording, use [the 2:45 video script](VIDEO_SCRIPT.md), which separates the authored 3D scene from the optional server-backed proof clip. MUS-015–017 remain deferred.

@@ -1,0 +1,17 @@
+# Render blueprint: one web service built from the Dockerfile.
+# Free demo instance; exercises and local data reset on restart. See docs/DEPLOY.md.
+services:
+  - type: web
+    name: bastion
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      # Set this one by hand in the dashboard; it is the password of the demo accounts.
+      - key: SEED_DEMO_PASSWORD
+        sync: false
+      - key: INTEL_MODE
+        value: cache

@@ -107,8 +107,15 @@ export function createBastionClient(config: ClientOptions = {}) {
     return regionCache.load(url, () => request<RegionStatic>('GET', path));
   };
   const refresh = async (id: string, generation = epoch) => {
+    // The ordered live stream owns state once connected. A concurrent HTTP snapshot
+    // can arrive after newer ticks and overwrite a completed repair with stale data.
+    if (world.getState().connection === 'live') return;
     const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(id));
-    if (generation === epoch && world.getState().world.operation.id === id)
+    if (
+      generation === epoch &&
+      world.getState().world.operation.id === id &&
+      world.getState().connection !== 'live'
+    )
       world.receive({ t: 'snapshot', world: snapshot });
   };
   const loadCatalogue = async (generation: number) => {
@@ -203,7 +210,12 @@ export function createBastionClient(config: ClientOptions = {}) {
     await refresh(id, generation);
   };
   const control = async (commandName: ControlCommand) => {
-    await command(apiPaths.operationControl(opId()), { command: commandName });
+    // The UI's Play control means resume when an existing exercise is paused.
+    const effective =
+      commandName === 'start' && world.getState().world.operation?.status === 'paused'
+        ? 'resume'
+        : commandName;
+    await command(apiPaths.operationControl(opId()), { command: effective });
     if (commandName === 'reset') data.setState({ briefing: undefined, history: [], current: -1 });
   };
   const setSpeed = (speed: number) =>

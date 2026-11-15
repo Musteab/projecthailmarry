@@ -41,7 +41,10 @@ export class WorldState {
   private patch: WorldPatch = {};
   private readonly counters = new Map<string, number>();
 
-  constructor(initial: WorldSnapshot) {
+  constructor(
+    initial: WorldSnapshot,
+    readonly commandGeneration = 0,
+  ) {
     this.snap = initial;
   }
 
@@ -92,11 +95,13 @@ export class WorldState {
     return this.snap.restoration;
   }
 
-  /** Deterministic ids: inc-1, inc-2, ... per prefix. */
+  /** Scenario IDs stay deterministic; globally routed commands also identify their exercise run. */
   nextId(prefix: string): string {
     const next = (this.counters.get(prefix) ?? 0) + 1;
     this.counters.set(prefix, next);
-    return `${prefix}-${next}`;
+    return prefix === 'act' || prefix === 'wo'
+      ? `${prefix}-${this.operation.id}-${this.commandGeneration}-${next}`
+      : `${prefix}-${next}`;
   }
 
   // ---- writing -------------------------------------------------------------------------
