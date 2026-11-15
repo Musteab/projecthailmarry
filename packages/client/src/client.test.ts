@@ -98,7 +98,8 @@ describe('interpolation', () => {
     const clock = anchorClock({ simTime: 10, speed: 5, durationSimSec: 30 }, 1000);
     expect(simTimeNow(clock, 2000)).toBe(15);
     expect(simTimeNow(clock, 0)).toBe(10);
-    expect(simTimeNow(clock, 9000)).toBe(30);
+    expect(simTimeNow(clock, 9000)).toBe(20);
+    expect(simTimeNow({ ...clock, simTime: 29 }, 9000)).toBe(30);
     expect(simTimeNow({ ...clock, speed: 0 }, 9000)).toBe(10);
     expect(simTimeNow({ simTime: 5, speed: 5, durationSimSec: null }, 100000)).toBe(5);
   });
