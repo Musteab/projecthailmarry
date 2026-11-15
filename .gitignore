@@ -1,0 +1,27 @@
+# dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# local environment and data (never commit secrets)
+.env
+.env.local
+.env.*.local
+.data/
+
+# tool caches
+.vite/
+.cache/
+tools/region-pack/.cache/
+playwright-report/
+test-results/
+
+# editor, OS and assistant workspace files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.claude/
+*.log
