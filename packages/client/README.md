@@ -1,4 +1,4 @@
-# @bastion/client — MUS-001
+# @bastion/client — MUS-001 / MUS-002
 
 The shared data layer for Thant's UI. Contract dependency: DOM-002 (PR #1).
 
@@ -7,7 +7,8 @@ The shared data layer for Thant's UI. Contract dependency: DOM-002 (PR #1).
 Wrap the web app once with `BastionProvider` from `@bastion/client`. Pass
 `config={{ mock: true }}` for the local preview, or use the existing `pnpm dev:mock`
 script (`VITE_MOCK=1`). The provider automatically signs into the **local mock**,
-loads region-mini, launches its exercise, and starts three units moving. The web
+loads region-mini and launches the `mock-flood` story. Units depart as dispatch
+events occur (first rescue at T+25 sim seconds). The web
 app still needs Thant to mount the provider and consume the hooks; this package
 does not modify `apps/web`.
 
@@ -47,23 +48,77 @@ a successful reconnect receives a fresh authoritative snapshot. Disconnects
 cancel retry timers. The store exposes the latest protocol error to advanced
 consumers through `useBastionClient().world`.
 
-## Mock v0 limits
+## Scripted scenarios
 
-- Synthetic region-mini geometry; initial three routes loop on fixture edges.
-  Later operator dispatches use straight preview routes, not road routing.
-- One rescue incident and an approval-gated utility action. Approval, rejection,
-  override, operation controls, injects, rules, and work-order transitions update
-  the local world. All actions are sandboxed. Live-mode launch is rejected.
-- Restoration options are UI fixtures with zero claimed population benefit;
-  impact cells are empty. Briefing and copilot responses are explicitly mock text.
-- The director's steps expose region-mini scenario beats and navigate captions;
-  jumping a step does not fast-forward the engine. Automatic scenario playback,
-  flood/quake physics and scripted demo acts belong to MUS-002; the final stage
-  director belongs to MUS-013.
-- Overriding an executed action records the override; it does not reverse its
-  physical effect. Submit and approve the corresponding restoration action.
+`useScenarios()` lists `mock-flood` and `mock-quake`. Select with
+`useOperation().launch({ scenarioId: 'mock-quake', mode: 'exercise' })`, then call
+`control('start')`. Each story lasts 380 simulation seconds (76 wall seconds at
+its default 5x speed). Pause, resume, supported speeds, reset and end work offline.
 
-No cloud keys, browser tokens, or environment changes are needed for mock v0.
+Every surface receives schema-validated snapshots, tick patches and beats:
+cell hazard intensity, corroborating signals, incidents, dispatches, road closures,
+hospital power/diversion, grid sections, shelter occupancy, ranked restoration
+options, per-cell hospital access, work orders, timeline and metrics.
+
+- Road routes use the actual **fixture edges**, respect one-way roads and avoid
+  closed/flooded/blocked/damaged edges. Closure injects reroute units. An unreachable
+  unit waits; it never drives through a blocked edge. Rerouting snaps a moving unit
+  to its nearest graph node, a deliberate preview simplification.
+- Approval executes; rejection leaves a declined audit card without dispatching.
+  Overriding a dispatch releases the previous unit and executes the replacement.
+  Invalid replacements roll back. Overriding an executed grid action records the
+  override; use a separate restoration action to reverse its physical effect.
+- Utility/rescue autonomy updates affect subsequent scripted decisions. An `off`
+  rule suppresses its action; `approve` waits for an operator.
+- Work orders progress through assignment, work, inspection and reopening. Manual
+  cancellation is respected by the remaining story beats. Reopening removes road
+  blocks and allows waiting units to reroute.
+- `useDemoDirector().goto(i)` rebuilds the mock to that beat and pauses, including
+  backward jumps. It discards earlier manual interventions, retaining current rules.
+  Beat captions survive pause and command refreshes.
+
+The geography is synthetic region-mini, not Portland streets. Hazards are scripted
+keyframes rather than physics or forecasts. Access comparisons are computed on the
+fixture graph; shelter-access benefits remain zero. Briefing/copilot text is a
+local summary, not an AI call. All scripted actions are sandboxed; live launch is
+rejected. Thant still owns mounting the hooks and rendering the 3D UI.
+
+## Recording and replay
+
+Record an existing server operation once Dominic's WebSocket operation endpoints
+are available:
+
+```sh
+pnpm --filter @bastion/client record --operation <id> --seconds 90 --out data/fixtures/server-run.ndjson
+```
+
+The recorder reads `BASTION_TOKEN` from the environment; it never writes the token
+or connection URL into the recording. `--url` defaults to `ws://127.0.0.1:8787/ws`.
+Paths are relative to the repo root. It waits for a matching initial snapshot,
+validates messages, and publishes the file only on successful completion. It fails
+on early disconnect or missing snapshot and refuses to overwrite an existing file.
+
+Each NDJSON line is `{ elapsedMs, message }`; the first is a snapshot at elapsed 0.
+`parseRecording` rejects malformed, unordered and mixed-operation captures.
+
+```ts
+const client = createBastionClient({
+  mock: true,
+  transport: new MockTransport({ recording: ndjsonText }),
+});
+```
+
+Supply `region` alongside `recording` for captures outside region-mini. Pass this
+client to `BastionProvider` via its `client` prop. Recorded actions are read-only;
+playback supports start/pause/speed/reset and director seeking. Playback speeds
+multiply the recorded rate. `RecordingPlayer` emits the exact original stream at
+1x; `MockTransport` additionally supplies control snapshots, scales display clocks,
+and freezes the display clock at the end of a capture. Those playback messages do
+not alter the saved recording.
+
+`pnpm --filter @bastion/client fixtures` deterministically regenerates the two
+committed **mock-generated** captures in `data/fixtures`. They are not captures of
+the real server. No cloud keys or network are needed to play either exercise.
 
 ## Validation
 

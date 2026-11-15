@@ -187,10 +187,11 @@ describe('mock and runtime', () => {
     await client.start();
     expect(client.data.getState().error).toBeUndefined();
     expect(client.world.getState().connection).toBe('mock');
+    vi.advanceTimersByTime(8000);
     const world = client.world.getState().world;
     expect(WorldSnapshotSchema.safeParse(world).success).toBe(true);
     const moving = Object.values(world.units).filter((u) => u.assignment);
-    expect(moving).toHaveLength(3);
+    expect(moving.length).toBeGreaterThan(0);
     vi.advanceTimersByTime(1000);
     expect(client.world.getState().world.units[moving[0].id].position).not.toEqual(
       moving[0].position,
@@ -209,6 +210,10 @@ describe('mock and runtime', () => {
     vi.useFakeTimers();
     const client = createBastionClient({ mock: true });
     await client.start();
+    await client.actionCommands.create({
+      kind: 'isolate_grid_section',
+      sectionId: Object.keys(client.world.getState().world.gridSections)[0],
+    });
     const action = Object.values(client.world.getState().world.actions)[0];
     await client.actionCommands.approve(action.id);
     expect(client.world.getState().world.actions[action.id].status).toBe('executed');

@@ -38,7 +38,12 @@ export function createWorldStore() {
       if (message.t === 'snapshot') {
         store.setState({
           world: { ...message.world, clock: anchorClock(message.world.clock, nowMs) },
-          beat: null,
+          beat:
+            store.getState().world.operation.id === message.world.operation.id &&
+            message.world.clock.simTime >= store.getState().world.clock.simTime &&
+            message.world.operation.status !== 'ready'
+              ? store.getState().beat
+              : null,
           error: undefined,
         });
       } else {
