@@ -458,6 +458,7 @@ All routes are under `/api`, JSON in and out, `Authorization: Bearer <jwt>` unle
 | `GET /regions/:id/static` | Region pack | → `RegionStatic` | Dominic | client |
 | `GET /scenarios` | Scenario catalogue | → `Pick<Scenario,'id'|'name'|'hazard'|'description'|'durationSimSec'>[]` | Dominic | client |
 | `POST /operations` | Create an operation | `{regionId,scenarioId,mode,name?}` → `Operation` | Dominic | client |
+| `GET /operations` | Operations currently held by the server (added in v1.1) | → `Operation[]` | Dominic | client |
 | `GET /operations/:id` | Full state | → `WorldSnapshot` | Dominic | client |
 | `POST /operations/:id/control` | Transport | `{command:'start'|'pause'|'resume'|'reset'|'end'}` or `{command:'speed',speed}` → `Operation` | Dominic | client |
 | `POST /operations/:id/injects` | What-if | `Inject` → `{ok:true}` | Dominic | client |
