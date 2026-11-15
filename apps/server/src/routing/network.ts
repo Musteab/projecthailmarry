@@ -12,6 +12,14 @@ export interface Route {
   lengthM: number;
 }
 
+/**
+ * Who is travelling. `water` is a swift-water rescue crew: they can work their way along a
+ * flooded street, slowly, where a road vehicle cannot go at all.
+ */
+export type TravelProfile = 'road' | 'water';
+/** Share of normal speed a swift-water crew makes along a flooded street. */
+const WATER_SPEED_FACTOR = 0.35;
+
 /** Whether an edge in this state can be driven. */
 export function isPassable(state: RoadState | null | undefined): boolean {
   if (!state || state.status === 'open') return true;
@@ -92,30 +100,36 @@ interface Search {
 export class RoadNetwork {
   /** Travel-time multiplier per edge; Infinity means the edge cannot be driven. */
   private readonly multiplier: Float64Array;
+  /** The same for swift-water crews: identical except on flooded edges. */
+  private readonly waterMultiplier: Float64Array;
   /** Bumped on every change, so callers can tell whether cached answers are stale. */
   version = 0;
 
   constructor(readonly topology: RoadTopology) {
     this.multiplier = new Float64Array(topology.edgeCount).fill(1);
+    this.waterMultiplier = new Float64Array(topology.edgeCount).fill(1);
   }
 
   /** Sets an edge directly. `speedFactor` is the fraction of normal speed (0 < f <= 1). */
-  setEdge(edgeId: string, passable: boolean, speedFactor = 1): void {
+  setEdge(edgeId: string, passable: boolean, speedFactor = 1, flooded = false): void {
     const edge = this.topology.requireEdge(edgeId);
     const next = passable ? 1 / Math.min(1, Math.max(0.01, speedFactor)) : Infinity;
-    if (this.multiplier[edge] !== next) {
+    const water = flooded ? 1 / WATER_SPEED_FACTOR : next;
+    if (this.multiplier[edge] !== next || this.waterMultiplier[edge] !== water) {
       this.multiplier[edge] = next;
+      this.waterMultiplier[edge] = water;
       this.version++;
     }
   }
 
   /** Applies a road state from the world. `null` or absent means plainly open. */
   applyRoadState(edgeId: string, state: RoadState | null | undefined): void {
-    this.setEdge(edgeId, isPassable(state), state?.speedFactor ?? 1);
+    this.setEdge(edgeId, isPassable(state), state?.speedFactor ?? 1, state?.status === 'flooded');
   }
 
-  isEdgePassable(edgeId: string): boolean {
-    return this.multiplier[this.topology.requireEdge(edgeId)] !== Infinity;
+  isEdgePassable(edgeId: string, profile: TravelProfile = 'road'): boolean {
+    const multiplier = profile === 'water' ? this.waterMultiplier : this.multiplier;
+    return multiplier[this.topology.requireEdge(edgeId)] !== Infinity;
   }
 
   /**
@@ -124,26 +138,35 @@ export class RoadNetwork {
    * `fn` must be synchronous.
    */
   withUnblocked<T>(edgeIds: Iterable<string>, fn: () => T): T {
-    const saved: [number, number][] = [];
+    const saved: [number, number, number][] = [];
     for (const edgeId of edgeIds) {
       const edge = this.topology.edgeIndex(edgeId);
       if (edge === undefined) continue;
-      saved.push([edge, this.multiplier[edge]!]);
+      saved.push([edge, this.multiplier[edge]!, this.waterMultiplier[edge]!]);
       this.multiplier[edge] = 1;
+      this.waterMultiplier[edge] = 1;
     }
     try {
       return fn();
     } finally {
-      for (const [edge, value] of saved) this.multiplier[edge] = value;
+      for (const [edge, value, water] of saved) {
+        this.multiplier[edge] = value;
+        this.waterMultiplier[edge] = water;
+      }
     }
   }
 
-  private search(sources: number[], reverse: boolean, targets: Uint8Array | null): Search {
+  private search(
+    sources: number[],
+    reverse: boolean,
+    targets: Uint8Array | null,
+    profile: TravelProfile = 'road',
+  ): Search {
     const { nodeCount, baseSeconds } = this.topology;
     const start = reverse ? this.topology.inStart : this.topology.outStart;
     const neighbour = reverse ? this.topology.inFrom : this.topology.outTo;
     const arcEdge = reverse ? this.topology.inEdge : this.topology.outEdge;
-    const multiplier = this.multiplier;
+    const multiplier = profile === 'water' ? this.waterMultiplier : this.multiplier;
 
     const dist = new Float64Array(nodeCount).fill(Infinity);
     const prevNode = new Int32Array(nodeCount).fill(-1);
@@ -189,12 +212,12 @@ export class RoadNetwork {
   }
 
   /** Fastest drivable route between two nodes, or null when they are disconnected. */
-  route(fromNodeId: string, toNodeId: string): Route | null {
+  route(fromNodeId: string, toNodeId: string, profile: TravelProfile = 'road'): Route | null {
     const from = this.topology.requireNode(fromNodeId);
     const to = this.topology.requireNode(toNodeId);
     const mask = new Uint8Array(this.topology.nodeCount);
     mask[to] = 1;
-    const search = this.search([from], false, mask);
+    const search = this.search([from], false, mask, profile);
     if (search.reached !== to) return null;
 
     const edgeIndexes: number[] = [];
@@ -233,9 +256,12 @@ export class RoadNetwork {
    * - `toward: true`: time to drive FROM each node TO the nearest source (what "can residents
    *   reach a hospital" needs when there are one-way streets).
    */
-  travelTimes(nodeIds: string[], options: { toward?: boolean } = {}): Float64Array {
+  travelTimes(
+    nodeIds: string[],
+    options: { toward?: boolean; profile?: TravelProfile } = {},
+  ): Float64Array {
     const sources = nodeIds.map((id) => this.topology.requireNode(id));
-    return this.search(sources, options.toward === true, null).dist;
+    return this.search(sources, options.toward === true, null, options.profile).dist;
   }
 
   /** The candidate that can be reached soonest from `fromNodeId`, or null if none can. */

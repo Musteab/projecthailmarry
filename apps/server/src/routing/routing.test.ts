@@ -207,6 +207,31 @@ describe('road status', () => {
     expect(network.secondsBetween(miniNodeId(2, 1), miniNodeId(3, 1))).toBeCloseTo(normal, 9);
   });
 
+  it('a flooded street stops road vehicles but not a swift-water crew', () => {
+    const network = mini();
+    const normal = network.secondsBetween(miniNodeId(2, 1), miniNodeId(3, 1));
+    network.applyRoadState(SOUTH_BRIDGE, { status: 'flooded', closurePublished: false });
+    network.applyRoadState(NORTH_BRIDGE, { status: 'flooded', closurePublished: false });
+
+    expect(network.isEdgePassable(SOUTH_BRIDGE)).toBe(false);
+    expect(network.isEdgePassable(SOUTH_BRIDGE, 'water')).toBe(true);
+    expect(network.route(miniNodeId(2, 1), miniNodeId(3, 1))).toBeNull();
+    const byWater = network.route(miniNodeId(2, 1), miniNodeId(3, 1), 'water')!;
+    expect(byWater.edgeIds).toEqual([SOUTH_BRIDGE]);
+    expect(byWater.seconds).toBeGreaterThan(normal * 2); // slow going
+
+    const index = (id: string) => network.topology.requireNode(id);
+    const east = miniNodeId(5, 4);
+    expect(network.travelTimes([miniNodeId(0, 0)])[index(east)]).toBe(Infinity);
+    expect(network.travelTimes([miniNodeId(0, 0)], { profile: 'water' })[index(east)]).not.toBe(
+      Infinity,
+    );
+
+    // Damage that is not water stops everyone.
+    network.applyRoadState(SOUTH_BRIDGE, { status: 'closed', closurePublished: false });
+    expect(network.isEdgePassable(SOUTH_BRIDGE, 'water')).toBe(false);
+  });
+
   it('bumps the version only when something actually changes', () => {
     const network = mini();
     network.setEdge(SOUTH_BRIDGE, true);

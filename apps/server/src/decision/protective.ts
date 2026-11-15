@@ -6,6 +6,8 @@ import type { SystemFactory } from '../sim/runtime';
 import { functioningHospitals } from './dispatch';
 
 const DEFAULT_DISPLACED_THRESHOLD = 100;
+/** Closures that appear within this many sim seconds are published together. */
+const CLOSURE_BATCH_SEC = 30;
 /** People arriving at an open shelter per sim second. */
 const SHELTER_INTAKE_PER_SEC = 4;
 
@@ -17,6 +19,7 @@ const SHELTER_INTAKE_PER_SEC = 4;
 export const protectiveSystem: SystemFactory = (rt) => {
   const shelters = rt.index.region.facilities.filter((facility) => facility.kind === 'shelter');
   const population = new Map(rt.index.region.cells.map((cell) => [cell.id, cell]));
+  let closuresPendingSince: number | null = null;
 
   return {
     name: 'protective',
@@ -27,7 +30,15 @@ export const protectiveSystem: SystemFactory = (rt) => {
       const unpublished = Object.entries(world.roads)
         .filter(([, road]) => !road.closurePublished && !isPassable(road))
         .map(([edgeId]) => edgeId);
-      if (unpublished.length > 0) {
+      // Roads close one after another as the water spreads. Wait a little so they go out as
+      // one notice rather than a stream of them.
+      if (unpublished.length === 0) closuresPendingSince = null;
+      else closuresPendingSince ??= runtime.simTime;
+      if (
+        unpublished.length > 0 &&
+        runtime.simTime - (closuresPendingSince ?? runtime.simTime) >= CLOSURE_BATCH_SEC
+      ) {
+        closuresPendingSince = null;
         const reasons = [...new Set(unpublished.map((id) => world.roads[id]!.status))].join(', ');
         const first = runtime.index.edgeById.get(unpublished[0]!)!;
         runtime.actions.propose({

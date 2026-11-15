@@ -1,6 +1,6 @@
 import type { Incident, IncidentKind, LngLat, Unit } from '@bastion/shared';
 import { pointAlong } from '../geo';
-import type { Route } from '../routing/network';
+import type { Route, TravelProfile } from '../routing/network';
 import type { OperationRuntime, System } from '../sim/runtime';
 
 /** Seconds between the order and the wheels turning, for a unit waiting at its station. */
@@ -33,6 +33,10 @@ interface Task {
   sceneUntil?: number;
 }
 
+/** Swift-water crews can travel along flooded streets; everyone else needs an open road. */
+export const profileOf = (unit: Pick<Unit, 'kind'>): TravelProfile =>
+  unit.kind === 'swift_water' ? 'water' : 'road';
+
 export function sceneDurationSec(incident: Pick<Incident, 'kind' | 'severity'>): number {
   return Math.round(SCENE_SEC[incident.kind] * (0.7 + 0.15 * incident.severity));
 }
@@ -60,7 +64,11 @@ export class UnitService {
     options: { turnout: boolean; urgent: boolean; status: Unit['status'] },
   ): Route | null {
     const { rt } = this;
-    const route = rt.network.route(rt.index.nearestNodeId(unit.position), task.destinationNodeId);
+    const route = rt.network.route(
+      rt.index.nearestNodeId(unit.position),
+      task.destinationNodeId,
+      profileOf(unit),
+    );
     if (!route) return null;
 
     const departedSimTime = rt.simTime + (options.turnout ? TURNOUT_SEC : 0);
@@ -340,7 +348,9 @@ export class UnitService {
           }
           if (
             networkChanged &&
-            assignment.routeEdgeIds.some((edgeId) => !rt.network.isEdgePassable(edgeId))
+            assignment.routeEdgeIds.some(
+              (edgeId) => !rt.network.isEdgePassable(edgeId, profileOf(unit)),
+            )
           ) {
             this.reroute(unit, task);
             continue;

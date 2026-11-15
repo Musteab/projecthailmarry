@@ -722,7 +722,10 @@ describe('action routes', () => {
     expect(dispatch.payload).toMatchObject({ unitId: MINI.units.rescue1 });
     expect(world().roads[miniEdgeH(2, 4)]).toMatchObject({
       status: 'closed',
-      closurePublished: true,
+      closurePublished: false,
     });
+    // Closures go out in batches, half a sim minute after the first one appears.
+    ctx.operations.tick(1000);
+    expect(world().roads[miniEdgeH(2, 4)]).toMatchObject({ closurePublished: true });
   });
 });

@@ -5,6 +5,7 @@ import type {
   RestorationOption,
 } from '@bastion/shared';
 import { notFound } from '../errors';
+import { RoadNetwork } from '../routing/network';
 import type { OperationRuntime, System } from '../sim/runtime';
 
 /** Used when public works has no rule on file. */
@@ -42,6 +43,12 @@ export class RestorationService {
   private readonly impacts = new Map<string, AccessImpact>();
   private readonly cellNode: Int32Array;
   private readonly population: Float64Array;
+  /**
+   * Cells that could reach a hospital / a shelter on the undamaged network. Map data has
+   * dead ends that reach nothing even on a good day; those are not the disaster's doing and
+   * must not be counted as people cut off.
+   */
+  private reference: { hospital: Uint8Array; shelter: Uint8Array } | undefined;
   private lastSignature = '';
   private dirtySince: number | null = null;
 
@@ -93,6 +100,21 @@ export class RestorationService {
     return { hospital: perCell(dest.hospitals), shelter: perCell(dest.shelters) };
   }
 
+  private servedBeforeDamage(): { hospital: Uint8Array; shelter: Uint8Array } {
+    if (this.reference) return this.reference;
+    const { region, topology } = this.rt.index;
+    const pristine = new RoadNetwork(topology);
+    const reachable = (kind: 'hospital' | 'shelter') => {
+      const nodes = region.facilities.filter((f) => f.kind === kind).map((f) => f.nodeId);
+      const byNode = nodes.length > 0 ? pristine.travelTimes(nodes, { toward: true }) : null;
+      return Uint8Array.from(this.cellNode, (node) =>
+        byNode && byNode[node] !== Infinity ? 1 : 0,
+      );
+    };
+    this.reference = { hospital: reachable('hospital'), shelter: reachable('shelter') };
+    return this.reference;
+  }
+
   /** Candidates that still need doing: at least one of their edges is impassable. */
   private openCandidates(): RepairCandidate[] {
     const { rt } = this;
@@ -112,14 +134,21 @@ export class RestorationService {
     const cells = rt.index.region.cells;
     const pop = this.population;
     const lacks = (minutes: number) => minutes > limit;
+    const served = this.servedBeforeDamage();
 
     let noHospital = 0;
     let noShelter = 0;
     let isolated = 0;
     for (let i = 0; i < cells.length; i++) {
-      if (lacks(before.hospital[i]!)) noHospital += pop[i]!;
-      if (lacks(before.shelter[i]!)) noShelter += pop[i]!;
-      if (before.hospital[i] === Infinity && before.shelter[i] === Infinity) isolated += pop[i]!;
+      if (served.hospital[i] && lacks(before.hospital[i]!)) noHospital += pop[i]!;
+      if (served.shelter[i] && lacks(before.shelter[i]!)) noShelter += pop[i]!;
+      if (
+        (served.hospital[i] || served.shelter[i]) &&
+        before.hospital[i] === Infinity &&
+        before.shelter[i] === Infinity
+      ) {
+        isolated += pop[i]!;
+      }
     }
 
     const candidates = this.openCandidates();
