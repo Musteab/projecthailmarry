@@ -144,7 +144,7 @@ export const DEFAULT_RULES: RuleSeed[] = [
     authority: 'utility',
     name: 'Isolate an endangered grid section',
     description:
-      'De-energize a section automatically when water at its equipment or shaking along it reaches the threshold, or is forecast to within the lead time.',
+      'De-energize a section automatically when water at its equipment or shaking along it reaches the threshold or is seconds from it. A section forecast to reach it within the lead time is flagged as threatened.',
     actionKind: 'isolate_grid_section',
     autonomy: 'auto',
     params: { floodDepthM: 0.5, shakeMMI: 8, leadTimeMin: 5 },
