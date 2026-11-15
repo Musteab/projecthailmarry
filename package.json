@@ -11,6 +11,8 @@
     "dev:server": "pnpm --filter @bastion/server dev",
     "dev:web": "pnpm --filter @bastion/web dev",
     "dev:mock": "pnpm --filter @bastion/web dev:mock",
+    "start": "pnpm --filter @bastion/server start",
+    "smoke": "pnpm --filter @bastion/server smoke",
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",

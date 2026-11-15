@@ -1,0 +1,16 @@
+# Keep the build context small and never ship local state or secrets.
+**/node_modules
+**/dist
+**/coverage
+.git
+.github
+.data
+.vitest
+.claude
+.env
+.env.local
+.env.*.local
+*.log
+docs
+e2e
+tools/region-pack/.cache
