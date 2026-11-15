@@ -8,7 +8,7 @@ One container, one URL. The Fastify server serves the API (`/api/*`), the realti
 - Environment variables (below).
 - Nothing else. No database service, no build step outside the image, no second process.
 
-The server holds each running exercise in memory, so run **one instance**. Do not scale horizontally and do not let the host put the service to sleep during the pitch.
+The server holds each running exercise in memory, so run **one instance**. Do not scale horizontally. Free Render services sleep after 15 minutes without inbound traffic; open and verify the app before the pitch. A restart loses in-memory exercises.
 
 ## Environment
 
@@ -63,17 +63,27 @@ This ends every exercise, restores the demo accounts and puts the agency rules b
 
 ## Hosts
 
-Any host that runs a Dockerfile works. [`render.yaml`](../render.yaml) is a starting blueprint for Render; it has **not** been tried against a live account yet. Whatever the host:
+The prepared [`render.yaml`](../render.yaml) explicitly selects Render **Free**. The Docker image also disables external feeds for the exercise. Free instances have no persistent disk; account/rule changes and audit records are lost on restart. This is a demo deployment. See [Render free-service limits](https://render.com/docs/free).
+
+For the dashboard setup:
 
 1. Point it at this repository and the `Dockerfile`.
 2. Set `JWT_SECRET` and `SEED_DEMO_PASSWORD`.
-3. Set the health check to `/api/health`.
-4. Make sure the instance does not idle to zero, and that it is a single instance.
+3. Select the Docker runtime, branch `main`, and health check `/api/health`.
+4. Select **Free ($0)** and one instance. Wake the service and rehearse before recording.
 5. Run `pnpm smoke <url>`.
 
 ## Pitch day
 
 - Present from a laptop running the app locally, with the deployed URL as the link for judges. Venue Wi-Fi then cannot break the demo.
-- `INTEL_MODE=cache` plays the scenarios with recorded AI answers and no network calls.
+- `INTEL_MODE=cache` plays the scenarios with labelled rehearsal fixtures and deterministic fallbacks, with no model calls.
 - The app at `/` (in-browser engine) needs no server at all and is the last-resort fallback.
 - Reset, then run both scenarios once on the machine and display you will present from.
+
+## Automated browser verification
+
+`node apps/web/node_modules/@playwright/test/cli.js test --config e2e/playwright.config.mjs` covers the mock scene and real server through repair reopening. The CI browser job is initially advisory. See `e2e/README.md` for browser installation and repeat runs.
+
+Action and work-order IDs include the operation and reset generation. Rehearsals can share a server without commands targeting an earlier exercise; stale command IDs after reset return 404. The administrator demo-reset endpoint ends and removes all in-memory exercises.
+
+The 2:45 recording script with screen directions is in [docs/demo/VIDEO_SCRIPT.md](demo/VIDEO_SCRIPT.md). Low-priority MUS-015–017 remain deferred.

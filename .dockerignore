@@ -8,8 +8,8 @@
 .vitest
 .claude
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 *.log
 docs
 e2e

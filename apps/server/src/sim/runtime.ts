@@ -46,6 +46,8 @@ export interface RuntimeLogger {
 
 export interface RuntimeOptions {
   operation: Operation;
+  /** Incremented on reset so old command links cannot mutate the new exercise. */
+  commandGeneration?: number;
   index: RegionIndex;
   scenario: Scenario | null;
   /** in pipeline order */
@@ -122,7 +124,7 @@ export class OperationRuntime {
         ? { track: spec.track.map(([, position]) => position), radiusM: spec.radiusM }
         : {}),
     }));
-    this.world = new WorldState(initial);
+    this.world = new WorldState(initial, options.commandGeneration);
     this.units = new UnitService(this);
     this.audit = options.audit ?? (() => undefined);
     this.actions = new ActionService(this, this.audit);

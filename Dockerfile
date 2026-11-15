@@ -29,8 +29,9 @@ ENV NODE_ENV=production
 # Listen on every interface inside the container.
 ENV API_HOST=0.0.0.0
 ENV API_PORT=8787
-# Recorded AI answers: no API key and no outbound calls needed. Use `live` with ANTHROPIC_API_KEY.
+# Cached fixtures and deterministic fallbacks: no AI API key needed.
 ENV INTEL_MODE=cache
+ENV FEEDS_ENABLED=0
 # The live world of an operation is in memory; this file only holds accounts, rules and the audit
 # trail, and is recreated and reseeded if it is missing. Mount a volume here to keep it.
 ENV DATABASE_PATH=/app/.data/bastion.sqlite

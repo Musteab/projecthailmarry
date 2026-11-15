@@ -1,9 +1,10 @@
 # Render blueprint: one web service built from the Dockerfile.
-# NOT YET VERIFIED against a live Render account. See docs/DEPLOY.md before relying on it.
+# Free demo instance; exercises and local data reset on restart. See docs/DEPLOY.md.
 services:
   - type: web
     name: bastion
     runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
