@@ -1,3 +1,4 @@
+import { registerPublicOutputs } from '../publish/routes';
 import { readFile } from 'node:fs/promises';
 import { FeedScheduler, createFeedAdapters } from '../feeds';
 import { CopilotRequestSchema } from '@bastion/shared';
@@ -14,6 +15,7 @@ export const intelPlugin: FastifyPluginAsync<{ host: IntelHost; config?: IntelCo
 ) => {
   if (typeof host.authenticate !== 'function')
     throw new Error('IntelHost.authenticate must be a Fastify preHandler');
+  registerPublicOutputs(app, host);
   const port = createIntel(config);
   const service = new IntelService(config);
   app.decorate('bastionIntel', port);
