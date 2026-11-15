@@ -10,3 +10,5 @@ export { withFallback } from './fallback';
 export { TRIAGE_DISCLAIMER } from './triage';
 
 export { FeedScheduler, createFeedAdapters } from './feeds';
+
+export { closureGeoJson, capAlert, formatDispatch } from './publish';
