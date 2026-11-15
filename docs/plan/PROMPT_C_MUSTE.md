@@ -89,7 +89,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 | Concern | Decision |
 |---|---|
 | Language / runtime | TypeScript everywhere, Node ≥ 22 (team machine has 24), ESM |
-| Workspace | pnpm workspaces (`corepack enable`). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
+| Workspace | pnpm 10 workspaces (`npm install -g pnpm@10`; `corepack enable` needs an administrator terminal on Windows). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
 | Frontend | React + Vite. Mapbox GL JS v3 Standard style (3D buildings, terrain, dusk/night light presets, built-in rain) + deck.gl via `MapboxOverlay`. Styling stack is Thant's choice. Fallback map: MapLibre + free tiles if the Mapbox token is a problem. |
 | Backend | Fastify 5 + `@fastify/websocket`. Single process holds the live world of each operation in memory and ticks it. |
 | Database | SQLite through built-in `node:sqlite` (`DatabaseSync`), plain SQL migrations. Persists users, rules, operations, actions, audit log, work orders. Fallback: `better-sqlite3` (same API shape). World state itself is in memory. |
@@ -157,7 +157,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 
 | Variable | Used by | Purpose |
 |---|---|---|
-| `PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS |
+| `API_PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS. Deliberately not `PORT`, which dev tools set for the web app. |
 | `DATABASE_PATH` (default `./.data/bastion.sqlite`) | server | SQLite file |
 | `JWT_SECRET` | server | Token signing |
 | `SEED_DEMO_PASSWORD` | server seed | Password for the seeded demo accounts |
@@ -823,7 +823,7 @@ Two interfaces are yours to keep honest: the hooks Thant consumes and the `Intel
 
 1. Read this brief once, fully.
 2. Wait for Dominic's announcement that the repository and contracts are on `main` (DOM-001, DOM-002). While waiting: obtain an Anthropic API key for the team and keep it in your local `.env` only; open the proposed Portland bounding box on a map and note the creek, bridges and hospitals you want in it; draft the Overpass queries; read the current Claude API documentation for structured JSON output.
-3. Clone, `corepack enable`, `pnpm install`.
+3. Clone, `npm install -g pnpm@10`, `pnpm install`.
 4. MUS-001 on `feat/muste-client-core`, committing at each listed milestone; PR; merge when CI is green; announce mock v0 to Thant.
 5. Then MUS-002, MUS-003, MUS-004 and onward in the stated order, one task per branch, one PR per task.
 6. At the end of each task, report what was built, test results (paste the summary line), and what the other two can now rely on.

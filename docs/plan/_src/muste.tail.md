@@ -14,7 +14,7 @@ Two interfaces are yours to keep honest: the hooks Thant consumes and the `Intel
 
 1. Read this brief once, fully.
 2. Wait for Dominic's announcement that the repository and contracts are on `main` (DOM-001, DOM-002). While waiting: obtain an Anthropic API key for the team and keep it in your local `.env` only; open the proposed Portland bounding box on a map and note the creek, bridges and hospitals you want in it; draft the Overpass queries; read the current Claude API documentation for structured JSON output.
-3. Clone, `corepack enable`, `pnpm install`.
+3. Clone, `npm install -g pnpm@10`, `pnpm install`.
 4. MUS-001 on `feat/muste-client-core`, committing at each listed milestone; PR; merge when CI is green; announce mock v0 to Thant.
 5. Then MUS-002, MUS-003, MUS-004 and onward in the stated order, one task per branch, one PR per task.
 6. At the end of each task, report what was built, test results (paste the summary line), and what the other two can now rely on.

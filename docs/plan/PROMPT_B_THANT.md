@@ -105,7 +105,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 | Concern | Decision |
 |---|---|
 | Language / runtime | TypeScript everywhere, Node ≥ 22 (team machine has 24), ESM |
-| Workspace | pnpm workspaces (`corepack enable`). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
+| Workspace | pnpm 10 workspaces (`npm install -g pnpm@10`; `corepack enable` needs an administrator terminal on Windows). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
 | Frontend | React + Vite. Mapbox GL JS v3 Standard style (3D buildings, terrain, dusk/night light presets, built-in rain) + deck.gl via `MapboxOverlay`. Styling stack is Thant's choice. Fallback map: MapLibre + free tiles if the Mapbox token is a problem. |
 | Backend | Fastify 5 + `@fastify/websocket`. Single process holds the live world of each operation in memory and ticks it. |
 | Database | SQLite through built-in `node:sqlite` (`DatabaseSync`), plain SQL migrations. Persists users, rules, operations, actions, audit log, work orders. Fallback: `better-sqlite3` (same API shape). World state itself is in memory. |
@@ -173,7 +173,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 
 | Variable | Used by | Purpose |
 |---|---|---|
-| `PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS |
+| `API_PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS. Deliberately not `PORT`, which dev tools set for the web app. |
 | `DATABASE_PATH` (default `./.data/bastion.sqlite`) | server | SQLite file |
 | `JWT_SECRET` | server | Token signing |
 | `SEED_DEMO_PASSWORD` | server seed | Password for the seeded demo accounts |
@@ -829,7 +829,7 @@ When you need data that does not exist (a new field, a new selector, a camera cu
 
 1. Read this brief once, fully. Confirm with Thant whether to follow the recommended visual direction or a variation; capture the decision in `apps/web/src/design/README.md`.
 2. Wait for Dominic's announcement that the repository and contracts are on `main` (DOM-001, DOM-002). While waiting: gather references, choose fonts and the semantic colour ramps, obtain a Mapbox public token and put it in your local `.env` as `VITE_MAPBOX_TOKEN` (never commit it).
-3. Clone, `corepack enable`, `pnpm install`, `pnpm dev:mock`.
+3. Clone, `npm install -g pnpm@10`, `pnpm install`, `pnpm dev:mock`.
 4. THA-001 on `feat/thant-design-system`, committing at each listed milestone; PR; merge when CI is green.
 5. Continue in the stated order. One task per branch, one PR per task.
 6. At the end of each task, report what was built, how it was checked (viewports, scenarios, frame rate), and any change requests raised.

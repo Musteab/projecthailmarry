@@ -53,7 +53,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 | Concern | Decision |
 |---|---|
 | Language / runtime | TypeScript everywhere, Node ≥ 22 (team machine has 24), ESM |
-| Workspace | pnpm workspaces (`corepack enable`). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
+| Workspace | pnpm 10 workspaces (`npm install -g pnpm@10`; `corepack enable` needs an administrator terminal on Windows). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
 | Frontend | React + Vite. Mapbox GL JS v3 Standard style (3D buildings, terrain, dusk/night light presets, built-in rain) + deck.gl via `MapboxOverlay`. Styling stack is Thant's choice. Fallback map: MapLibre + free tiles if the Mapbox token is a problem. |
 | Backend | Fastify 5 + `@fastify/websocket`. Single process holds the live world of each operation in memory and ticks it. |
 | Database | SQLite through built-in `node:sqlite` (`DatabaseSync`), plain SQL migrations. Persists users, rules, operations, actions, audit log, work orders. Fallback: `better-sqlite3` (same API shape). World state itself is in memory. |
@@ -121,7 +121,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 
 | Variable | Used by | Purpose |
 |---|---|---|
-| `PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS |
+| `API_PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS. Deliberately not `PORT`, which dev tools set for the web app. |
 | `DATABASE_PATH` (default `./.data/bastion.sqlite`) | server | SQLite file |
 | `JWT_SECRET` | server | Token signing |
 | `SEED_DEMO_PASSWORD` | server seed | Password for the seeded demo accounts |

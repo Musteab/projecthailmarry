@@ -90,7 +90,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 | Concern | Decision |
 |---|---|
 | Language / runtime | TypeScript everywhere, Node ≥ 22 (team machine has 24), ESM |
-| Workspace | pnpm workspaces (`corepack enable`). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
+| Workspace | pnpm 10 workspaces (`npm install -g pnpm@10`; `corepack enable` needs an administrator terminal on Windows). Internal packages export TS source directly; no build step between packages. Server runs with `tsx`. |
 | Frontend | React + Vite. Mapbox GL JS v3 Standard style (3D buildings, terrain, dusk/night light presets, built-in rain) + deck.gl via `MapboxOverlay`. Styling stack is Thant's choice. Fallback map: MapLibre + free tiles if the Mapbox token is a problem. |
 | Backend | Fastify 5 + `@fastify/websocket`. Single process holds the live world of each operation in memory and ticks it. |
 | Database | SQLite through built-in `node:sqlite` (`DatabaseSync`), plain SQL migrations. Persists users, rules, operations, actions, audit log, work orders. Fallback: `better-sqlite3` (same API shape). World state itself is in memory. |
@@ -118,7 +118,7 @@ data/regions/* , data/scenarios/*  (Muste)        @bastion/shared (packages/shar
 
 | Variable | Used by | Purpose |
 |---|---|---|
-| `PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS |
+| `API_PORT` (default 8787), `CORS_ORIGIN` | server | HTTP listen, dev CORS. Deliberately not `PORT`, which dev tools set for the web app. |
 | `DATABASE_PATH` (default `./.data/bastion.sqlite`) | server | SQLite file |
 | `JWT_SECRET` | server | Token signing |
 | `SEED_DEMO_PASSWORD` | server seed | Password for the seeded demo accounts |
@@ -572,7 +572,7 @@ Order of attack: DOM-001 → 002 → 003 → (004, 005) → 006 → 007 → 008 
 - Create the GitHub repository, push, protect `main` (PR required, CI required), invite Thant and Muste.
 
 **Files.** Repo root, `.github/**`, skeleton `package.json` + `src/index.ts` in every workspace.
-**Acceptance.** Fresh clone: `corepack enable && pnpm install && pnpm dev` shows the placeholder page and `GET /api/health` returns `{ok:true}`. CI is green on `main`. CODEOWNERS routes each path to the right person.
+**Acceptance.** Fresh clone: `npm install -g pnpm@10 && pnpm install && pnpm dev` shows the placeholder page and `GET /api/health` returns `{ok:true}`. CI is green on `main`. CODEOWNERS routes each path to the right person.
 **Tests.** CI run itself; a trivial Vitest in `shared` to prove the runner works.
 **Commits.** `chore: initialise pnpm workspace and tooling` → `chore: add package skeletons for server, web, shared, client, intel, region-pack` → `ci: add typecheck/lint/test/build workflow and CODEOWNERS` → `docs: add master plan and developer briefs`
 
@@ -792,7 +792,7 @@ Order of attack: DOM-001 → 002 → 003 → (004, 005) → 006 → 007 → 008 
 ### DOM-016 · Deployment
 **Owner** Dominic · **Priority** P1 · **Complexity** Medium · **Branch** `feat/dominic-deploy` · **Depends on** M2
 
-**Objective.** One URL the judges can open, and a one-command local production run. **Implementation.** Multi-stage `Dockerfile` (build web, run server with `tsx`), server serves `apps/web/dist` with SPA fallback, `render.yaml` (or Fly config) with a persistent disk for SQLite, health check, WebSocket verified through the host's proxy, `pnpm start:prod`. Admin-only `POST /api/admin/demo-reset` that ends all operations and reseeds. **Files.** `Dockerfile`, `render.yaml`, `apps/server/src/static.ts`, `apps/server/src/routes/admin.ts`. **Acceptance.** Deployed URL plays the flood scenario end to end; cold start under 20 s; local `docker run` works offline except for map tiles. **Tests.** Smoke script hitting health, login, create operation, WebSocket snapshot. **Commits.** `feat(server): serve built web app` → `chore: dockerfile and deploy config` → `feat(admin): demo reset endpoint` → `test: deployment smoke script`
+**Objective.** One URL the judges can open, and a one-command local production run. **Implementation.** Multi-stage `Dockerfile` (build web, run server with `tsx`), server serves `apps/web/dist` with SPA fallback, `render.yaml` (or Fly config) with a persistent disk for SQLite, health check, WebSocket verified through the host's proxy, `pnpm start:prod`. The container start command maps the host's injected `PORT` to `API_PORT`. Admin-only `POST /api/admin/demo-reset` that ends all operations and reseeds. **Files.** `Dockerfile`, `render.yaml`, `apps/server/src/static.ts`, `apps/server/src/routes/admin.ts`. **Acceptance.** Deployed URL plays the flood scenario end to end; cold start under 20 s; local `docker run` works offline except for map tiles. **Tests.** Smoke script hitting health, login, create operation, WebSocket snapshot. **Commits.** `feat(server): serve built web app` → `chore: dockerfile and deploy config` → `feat(admin): demo reset endpoint` → `test: deployment smoke script`
 
 ### DOM-017 · Golden-run determinism and performance tests
 **Owner** Dominic · **Priority** P1 (do before demo lock) · **Complexity** Medium · **Branch** `feat/dominic-golden-runs` · **Depends on** MUS-007, MUS-008
