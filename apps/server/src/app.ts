@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { AppContext } from './context';
 import { installErrorHandling } from './errors';
+import { registerAuthRoutes } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { registerRegionRoutes } from './routes/regions';
 import { registerScenarioRoutes } from './routes/scenarios';
@@ -9,6 +10,9 @@ import { registerScenarioRoutes } from './routes/scenarios';
 /**
  * Builds the Fastify instance without starting it, so tests can drive it with `app.inject`.
  * Closing the app also closes the context (database).
+ *
+ * Every route under /api requires a valid token unless it is registered with
+ * `{ config: { public: true } }`. Protection is the default, not something a route opts into.
  */
 export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   const { config } = ctx;
@@ -25,7 +29,11 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
     allowedHeaders: ['Authorization', 'Content-Type'],
   });
 
+  app.decorateRequest('user', null);
+  app.addHook('onRequest', (request) => ctx.auth.gate(request));
+
   registerHealthRoutes(app);
+  registerAuthRoutes(app, ctx);
   registerScenarioRoutes(app, ctx);
   registerRegionRoutes(app, ctx);
 

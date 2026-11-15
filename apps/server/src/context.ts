@@ -1,4 +1,6 @@
 import { join } from 'node:path';
+import type { AuthService } from './auth/service';
+import { createAuth } from './auth/service';
 import type { Config } from './config';
 import type { Database } from './db/database';
 import { migrate, openDatabase } from './db/database';
@@ -13,6 +15,7 @@ import { ScenarioCatalog } from './scenarios/catalog';
 export interface AppContext {
   config: Config;
   db: Database;
+  auth: AuthService;
   regions: RegionRegistry;
   scenarios: ScenarioCatalog;
   /** validates an outgoing payload against the contract outside production */
@@ -27,8 +30,13 @@ export interface AppContext {
   close(): void;
 }
 
+export interface ContextOptions {
+  /** injectable wall clock (tests) */
+  now?: () => number;
+}
+
 /** Opens the database, migrates and seeds it, and loads the scenario catalogue. */
-export function createContext(config: Config): AppContext {
+export function createContext(config: Config, options: ContextOptions = {}): AppContext {
   const db = openDatabase(config.databasePath);
   const migrationsApplied = migrate(db);
   const seedResult = seed(db, config.seedDemoPassword);
@@ -39,6 +47,7 @@ export function createContext(config: Config): AppContext {
   return {
     config,
     db,
+    auth: createAuth({ db, jwtSecret: config.jwtSecret, now: options.now }),
     regions,
     scenarios,
     respond: makeResponder(config.validateResponses),
