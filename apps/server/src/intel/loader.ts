@@ -16,7 +16,7 @@ export interface LoadedIntel {
  * its own schedule, so anything short of a working `createIntel` falls back to the rule-based
  * NullIntel and the server boots regardless.
  */
-export async function loadIntel(env: Record<string, string | undefined>): Promise<LoadedIntel> {
+export async function loadIntel(): Promise<LoadedIntel> {
   const fallback = (note: string): LoadedIntel => ({
     port: new NullIntel(),
     source: 'fallback',
@@ -24,14 +24,15 @@ export async function loadIntel(env: Record<string, string | undefined>): Promis
   });
   try {
     const module = (await import('@bastion/intel')) as {
-      createIntel?: (config: Record<string, string | undefined>) => IntelPort;
+      createIntel?: () => IntelPort;
       intelPlugin?: FastifyPluginAsync<{ host: IntelHost }>;
     };
     if (typeof module.createIntel !== 'function') {
       return fallback('@bastion/intel does not export createIntel yet');
     }
     return {
-      port: module.createIntel(env),
+      // With no arguments it reads INTEL_MODE, ANTHROPIC_API_KEY and the model ids itself.
+      port: module.createIntel(),
       ...(typeof module.intelPlugin === 'function' ? { plugin: module.intelPlugin } : {}),
       source: 'package',
     };
