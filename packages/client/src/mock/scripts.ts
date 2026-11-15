@@ -165,7 +165,7 @@ export function createMockScripts(region: RegionStatic): MockScript[] {
     'Injuries near the damaged bridge',
     miniPoint(3, 4),
     ['quake-call'],
-    ['als_ambulance'],
+    ['bls_ambulance'],
   );
   const recovery: StoryEvent[] = [
     { at: 205, type: 'recovery' },

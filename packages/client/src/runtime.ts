@@ -262,6 +262,7 @@ export function createBastionClient(config: ClientOptions = {}) {
   const goto = (index: number) => {
     const steps = data.getState().steps;
     if (!Number.isInteger(index) || index < 0 || index >= steps.length) return;
+    if (transport instanceof MockTransport) transport.seek(steps[index].simTime);
     data.setState({ current: index });
     world.receive({ t: 'beat', beat: steps[index] });
   };
