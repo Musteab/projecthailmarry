@@ -3,6 +3,7 @@ import type {
   ControlRequest,
   CreateOperationRequest,
   Inject,
+  IntelPort,
   Operation,
   ServerMessage,
   Signal,
@@ -32,6 +33,8 @@ export interface OperationManagerOptions {
   scenarios: ScenarioCatalog;
   /** defaults to the standard pipeline */
   systems?: () => SystemFactory[];
+  /** the AI behind signal fusion and triage; defaults to the rule-based fallback */
+  intel?: IntelPort;
   logger?: RuntimeLogger;
 }
 
@@ -67,7 +70,7 @@ export class OperationManager {
       operation,
       index,
       scenario: scenario ?? null,
-      systems: (this.options.systems ?? defaultSystems)(),
+      systems: this.options.systems?.() ?? defaultSystems(this.options.intel),
       logger: this.options.logger,
     });
   }

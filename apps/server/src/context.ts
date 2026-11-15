@@ -8,6 +8,7 @@ import type { SeedResult } from './db/seed';
 import { seed } from './db/seed';
 import type { Responder } from './http';
 import { makeResponder } from './http';
+import type { LoadedIntel } from './intel/loader';
 import { OperationManager } from './operations/manager';
 import { RegionRegistry } from './region/pack';
 import { ScenarioCatalog } from './scenarios/catalog';
@@ -21,6 +22,8 @@ export interface AppContext {
   regions: RegionRegistry;
   scenarios: ScenarioCatalog;
   operations: OperationManager;
+  /** what was loaded from @bastion/intel, if anything */
+  intel: LoadedIntel | undefined;
   /** validates an outgoing payload against the contract outside production */
   respond: Responder;
   /** what happened while the context was being built, for the boot log */
@@ -36,6 +39,8 @@ export interface AppContext {
 export interface ContextOptions {
   /** injectable wall clock (tests) */
   now?: () => number;
+  /** the AI port and plugin loaded from @bastion/intel; defaults to the rule-based fallback */
+  intel?: LoadedIntel;
   /** receives faults from the simulation loop */
   logger?: RuntimeLogger;
 }
@@ -54,6 +59,7 @@ export function createContext(config: Config, options: ContextOptions = {}): App
     regions,
     scenarios,
     logger: options.logger,
+    intel: options.intel?.port,
   });
 
   return {
@@ -63,6 +69,7 @@ export function createContext(config: Config, options: ContextOptions = {}): App
     regions,
     scenarios,
     operations,
+    intel: options.intel,
     respond: makeResponder(config.validateResponses),
     boot: {
       migrationsApplied,

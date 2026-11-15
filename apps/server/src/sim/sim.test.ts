@@ -21,6 +21,7 @@ import { WorldState } from '../world/WorldState';
 import { Prng } from './prng';
 import type { SystemFactory } from './runtime';
 import { OperationRuntime } from './runtime';
+import { scenarioRunner } from './scenarioRunner';
 import { defaultSystems } from './systems';
 
 const operation: Operation = {
@@ -35,7 +36,8 @@ const operation: Operation = {
 };
 const index = buildRegionIndex(loadRegionMini());
 
-function makeRuntime(systems: SystemFactory[] = defaultSystems(), errors: string[] = []) {
+/** By default only the scenario runner, so these tests see the screenplay and nothing else. */
+function makeRuntime(systems: SystemFactory[] = [scenarioRunner], errors: string[] = []) {
   return new OperationRuntime({
     operation,
     index,
@@ -327,6 +329,15 @@ describe('OperationRuntime', () => {
     rt.setRoadState(edge, { status: 'open', closurePublished: false });
     expect(rt.world.roads[edge]).toBeUndefined();
     expect(rt.network.isEdgePassable(edge)).toBe(true);
+  });
+});
+
+describe('default pipeline', () => {
+  it('runs the scenario first, then the hazard models', () => {
+    const rt = makeRuntime(defaultSystems());
+    rt.advance(150);
+    expect(Object.keys(rt.world.cells).length).toBeGreaterThan(0);
+    expect(rt.world.signals.length).toBeGreaterThan(0);
   });
 });
 
