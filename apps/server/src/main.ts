@@ -4,8 +4,14 @@ import { createContext } from './context';
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const ctx = createContext(config);
+  // The simulation loop reports faults through the same logger as the HTTP server.
+  const faults: { log?: (message: string, error?: unknown) => void } = {};
+  const ctx = createContext(config, {
+    logger: { error: (message, error) => faults.log?.(message, error) },
+  });
   const app = await buildApp(ctx);
+
+  faults.log = (message, error) => app.log.error({ err: error }, message);
 
   const { boot } = ctx;
   if (boot.migrationsApplied.length > 0) {
@@ -33,6 +39,7 @@ async function main(): Promise<void> {
   process.once('SIGTERM', () => shutdown('SIGTERM'));
 
   await app.listen({ port: config.port, host: config.host });
+  ctx.operations.start();
 }
 
 main().catch((error: unknown) => {
