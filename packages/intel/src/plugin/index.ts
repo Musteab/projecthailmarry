@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { FeedScheduler, createFeedAdapters } from '../feeds';
 import { CopilotRequestSchema } from '@bastion/shared';
 import { IntelService } from '../port/service';
 import { briefing, copilot } from '../briefing';
@@ -20,6 +22,34 @@ export const intelPlugin: FastifyPluginAsync<{ host: IntelHost; config?: IntelCo
     { preHandler: host.authenticate as preHandlerHookHandler },
     async () => ({ ok: true }),
   );
+  const replayEnabled = process.env.FEEDS_REPLAY === '1';
+  const replay: Record<string, unknown> | undefined = replayEnabled
+    ? Object.fromEntries(
+        await Promise.all(
+          ['nws', 'usgs-earthquake', 'usgs-gauge'].map(async (id) => [
+            id,
+            JSON.parse(
+              await readFile(
+                new URL(`../../../../data/fixtures/feeds/${id}.json`, import.meta.url),
+                'utf8',
+              ),
+            ),
+          ]),
+        ),
+      )
+    : undefined;
+  const feeds = new FeedScheduler(
+    host,
+    (region) => createFeedAdapters(region, fetch, replay),
+    process.env.FEEDS_ENABLED === '1' && (service.mode !== 'cache' || replayEnabled),
+    (message) => app.log.warn(message),
+  );
+  app.addHook('onReady', async () => {
+    feeds.start();
+  });
+  app.addHook('onClose', async () => {
+    feeds.stop();
+  });
   const secured = { preHandler: host.authenticate as preHandlerHookHandler };
   app.post<{ Params: { id: string } }>(
     '/api/intel/operations/:id/briefing',
@@ -41,14 +71,12 @@ export const intelPlugin: FastifyPluginAsync<{ host: IntelHost; config?: IntelCo
         question: CopilotRequestSchema.shape.question.max(2000),
       }).safeParse(request.body);
       if (!body.success)
-        return reply
-          .code(400)
-          .send({
-            error: {
-              code: 'validation_failed',
-              message: 'A question of 1–2000 characters is required',
-            },
-          });
+        return reply.code(400).send({
+          error: {
+            code: 'validation_failed',
+            message: 'A question of 1–2000 characters is required',
+          },
+        });
       const world = host.getWorld(request.params.id);
       if (!world)
         return reply
