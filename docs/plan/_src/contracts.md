@@ -65,7 +65,10 @@ interface HazardState {
 interface CellState { floodDepthM?: number; shakeMMI?: number; windKph?: number }
 
 type RoadStatus = 'open' | 'flooded' | 'blocked' | 'damaged' | 'closed';
-interface RoadState { status: RoadStatus; reason?: string; closurePublished: boolean; repairCandidateId?: string }
+interface RoadState {
+  status: RoadStatus; reason?: string; closurePublished: boolean; repairCandidateId?: string;
+  speedFactor?: number; // v1.1: a non-open edge that is still passable at this fraction of normal speed
+}
 
 interface FacilityState {
   status: 'normal' | 'degraded' | 'offline';

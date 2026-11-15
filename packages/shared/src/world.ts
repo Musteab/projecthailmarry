@@ -76,6 +76,11 @@ export const RoadStateSchema = z.object({
   reason: z.string().optional(),
   closurePublished: z.boolean(),
   repairCandidateId: z.string().optional(),
+  /**
+   * Set when an edge that is not open can still be driven at reduced speed, as a fraction of
+   * normal speed (a restricted bridge). Absent on a non-open edge means impassable.
+   */
+  speedFactor: z.number().positive().max(1).optional(),
 });
 export type RoadState = z.infer<typeof RoadStateSchema>;
 
