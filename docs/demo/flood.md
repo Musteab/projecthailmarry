@@ -1,6 +1,6 @@
 # Johnson Creek: rescue to recovery
 
-Load `flash-flood-johnson-creek` in Portland, exercise mode, default 2×. The 600 simulated seconds take five stage minutes. All warnings, sensor readings, reported casualties, capacities, grid links and population are fictional training data. Creek geometry is simplified OpenStreetMap geometry, retrieved with the region pack.
+Load `flash-flood-johnson-creek` in Portland, exercise mode, default 5×. The 1,500 simulated seconds take five stage minutes. All warnings, sensor readings, reported casualties, capacities, grid links and population are fictional training data. Creek geometry is simplified OpenStreetMap geometry, retrieved with the region pack.
 
 | Stage time | Beat             | Expected observation                                    |
 | ---------- | ---------------- | ------------------------------------------------------- |

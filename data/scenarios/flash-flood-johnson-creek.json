@@ -5,8 +5,8 @@
   "regionId": "portland",
   "description": "Five-minute exercise on real Johnson Creek geography. Synthetic levels, population and damage; not a flood forecast.",
   "seed": 3407,
-  "durationSimSec": 600,
-  "defaultSpeed": 2,
+  "durationSimSec": 1500,
+  "defaultSpeed": 5,
   "hazards": [
     {
       "id": "johnson-flood",
@@ -378,35 +378,35 @@
       ],
       "stageCurve": [
         [
-          0,
+          0.0,
           0
         ],
         [
-          40,
+          100.0,
           0.3
         ],
         [
-          100,
+          250.0,
           2.5
         ],
         [
-          180,
+          450.0,
           4.5
         ],
         [
-          280,
+          700.0,
           4.5
         ],
         [
-          360,
+          900.0,
           1.0
         ],
         [
-          400,
+          1000.0,
           0
         ],
         [
-          600,
+          1500.0,
           0
         ]
       ],
@@ -419,7 +419,7 @@
   ],
   "timeline": [
     {
-      "at": 0,
+      "at": 0.0,
       "type": "signal",
       "signal": {
         "source": "official_alert",
@@ -433,13 +433,13 @@
       }
     },
     {
-      "at": 0,
+      "at": 0.0,
       "type": "hazard_phase",
       "hazardId": "johnson-flood",
       "phase": "forecast"
     },
     {
-      "at": 40,
+      "at": 100.0,
       "type": "signal",
       "signal": {
         "source": "sensor",
@@ -458,13 +458,13 @@
       }
     },
     {
-      "at": 40,
+      "at": 100.0,
       "type": "hazard_phase",
       "hazardId": "johnson-flood",
       "phase": "active"
     },
     {
-      "at": 100,
+      "at": 250.0,
       "type": "signal",
       "signal": {
         "source": "field_report",
@@ -478,7 +478,7 @@
       }
     },
     {
-      "at": 100,
+      "at": 250.0,
       "type": "signal",
       "signal": {
         "source": "call_911",
@@ -492,7 +492,7 @@
       }
     },
     {
-      "at": 100,
+      "at": 250.0,
       "type": "signal",
       "signal": {
         "source": "imagery",
@@ -506,7 +506,7 @@
       }
     },
     {
-      "at": 160,
+      "at": 400.0,
       "type": "signal",
       "signal": {
         "source": "call_911",
@@ -520,7 +520,7 @@
       }
     },
     {
-      "at": 220,
+      "at": 550.0,
       "type": "signal",
       "signal": {
         "source": "utility_scada",
@@ -538,7 +538,7 @@
       }
     },
     {
-      "at": 240,
+      "at": 600.0,
       "type": "inject",
       "inject": {
         "kind": "facility_power_loss",
@@ -547,7 +547,7 @@
       }
     },
     {
-      "at": 280,
+      "at": 700.0,
       "type": "signal",
       "signal": {
         "source": "field_report",
@@ -561,13 +561,13 @@
       }
     },
     {
-      "at": 360,
+      "at": 900.0,
       "type": "hazard_phase",
       "hazardId": "johnson-flood",
       "phase": "receding"
     },
     {
-      "at": 440,
+      "at": 1100.0,
       "type": "inject",
       "inject": {
         "kind": "set_road_status",
@@ -580,7 +580,7 @@
       }
     },
     {
-      "at": 520,
+      "at": 1300.0,
       "type": "hazard_phase",
       "hazardId": "johnson-flood",
       "phase": "ended"
@@ -589,7 +589,7 @@
   "beats": [
     {
       "id": "flood-0",
-      "simTime": 0,
+      "simTime": 0.0,
       "title": "Act 1: warning to action",
       "caption": "An exercise warning reaches the operations centre.",
       "camera": {
@@ -605,7 +605,7 @@
     },
     {
       "id": "flood-40",
-      "simTime": 40,
+      "simTime": 100.0,
       "title": "Water rises",
       "caption": "Gauge evidence and terrain-driven inundation reveal exposed roads.",
       "camera": {
@@ -621,7 +621,7 @@
     },
     {
       "id": "flood-105",
-      "simTime": 105,
+      "simTime": 262.5,
       "title": "Three reports, one rescue",
       "caption": "Field, caller and imagery evidence identify the same family.",
       "camera": {
@@ -637,7 +637,7 @@
     },
     {
       "id": "flood-165",
-      "simTime": 165,
+      "simTime": 412.5,
       "title": "Medical response under pressure",
       "caption": "A separate cardiac call requires ALS and a reachable hospital.",
       "camera": {
@@ -653,7 +653,7 @@
     },
     {
       "id": "flood-220",
-      "simTime": 220,
+      "simTime": 550.0,
       "title": "Protect critical services",
       "caption": "Utility-authorized actions protect the feeder; the hospital backup loss is scripted.",
       "camera": {
@@ -673,7 +673,7 @@
     },
     {
       "id": "flood-285",
-      "simTime": 285,
+      "simTime": 712.5,
       "title": "Shelter displaced residents",
       "caption": "An accessible shelter becomes part of the response.",
       "camera": {
@@ -689,7 +689,7 @@
     },
     {
       "id": "flood-445",
-      "simTime": 445,
+      "simTime": 1112.5,
       "title": "Recover access, not just roads",
       "caption": "Mailwell Drive debris isolates a modelled pocket of 1,021 people. Compare clearance benefits.",
       "camera": {
@@ -708,7 +708,7 @@
     },
     {
       "id": "flood-520",
-      "simTime": 520,
+      "simTime": 1300.0,
       "title": "From response to recovery",
       "caption": "The coordinator can issue and track the access-restoring work order.",
       "camera": {
