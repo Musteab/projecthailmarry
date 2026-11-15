@@ -420,7 +420,12 @@ export class MockTransport implements Transport {
       if (this.replay.complete) {
         this.replayRunning = false;
         this.world.clock.speed = 0;
-        this.emit({ t: 'tick', clock: copy(this.world.clock), patch: {} });
+        this.world.operation.status = 'ended';
+        this.emit({
+          t: 'tick',
+          clock: copy(this.world.clock),
+          patch: { operation: copy(this.world.operation) },
+        });
       }
       return;
     }
@@ -451,7 +456,12 @@ export class MockTransport implements Transport {
       });
       this.replayRunning = false;
       this.world.clock.speed = 0;
-      this.emit({ t: 'tick', clock: copy(this.world.clock), patch: {} });
+      this.world.operation.status = 'paused';
+      this.emit({
+        t: 'tick',
+        clock: copy(this.world.clock),
+        patch: { operation: copy(this.world.operation) },
+      });
       return;
     }
     if (!Number.isFinite(simTime) || simTime < 0 || simTime > this.scenario.durationSimSec)
@@ -834,6 +844,7 @@ export class MockTransport implements Transport {
       this.replayRate = 1;
       this.world = copy(replay.world);
       this.world.clock.speed = 0;
+      this.world.operation.status = 'ready';
       this.snapshot();
       return this.world.operation;
     }
@@ -847,6 +858,11 @@ export class MockTransport implements Transport {
       } else if (input.command === 'start' || input.command === 'resume') this.replayRunning = true;
       else if (input.command === 'pause' || input.command === 'end') this.replayRunning = false;
       else if (input.command === 'speed') this.replayRate = input.speed;
+      if (input.command === 'reset') this.world.operation.status = 'ready';
+      else if (input.command === 'start' || input.command === 'resume')
+        this.world.operation.status = 'running';
+      else if (input.command === 'pause') this.world.operation.status = 'paused';
+      else if (input.command === 'end') this.world.operation.status = 'ended';
       this.world.clock.speed = this.replayRunning ? replay.world.clock.speed * this.replayRate : 0;
       this.lastTick = Date.now();
       this.snapshot();

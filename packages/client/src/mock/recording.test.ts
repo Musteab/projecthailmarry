@@ -50,6 +50,7 @@ it('exposes recording playback through MockTransport and rejects changing record
   mock.advance(8);
   expect(mock.world.incidents['flood-rescue']).toBeDefined();
   await mock.request('POST', path, { command: 'pause' });
+  expect(mock.world.operation.status).toBe('paused');
   const paused = structuredClone(mock.world);
   mock.advance(10);
   expect(mock.world).toEqual(paused);
@@ -60,6 +61,7 @@ it('exposes recording playback through MockTransport and rejects changing record
   await mock.request('POST', path, { command: 'resume' });
   mock.advance(1);
   expect(mock.world.clock.simTime).toBe(65);
+  expect(mock.world.operation.status).toBe('running');
   expect(mock.world.clock.speed).toBe(25);
   mock.seek(205);
   expect(mock.world.restoration).not.toBeNull();
