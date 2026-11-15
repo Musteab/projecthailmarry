@@ -30,6 +30,8 @@ export interface HttpWsConfig {
   getToken?: () => string | undefined;
   fetch?: typeof fetch;
   webSocket?: (url: string) => WebSocket;
+  onContractError?: (issues: unknown) => void;
+  snapshotTimeoutMs?: number;
 }
 
 export class HttpWsTransport implements Transport {
@@ -71,6 +73,7 @@ export class HttpWsTransport implements Transport {
     let attempt = 0;
     let socket: WebSocket | undefined;
     let retry: ReturnType<typeof setTimeout> | undefined;
+    let snapshotTimer: ReturnType<typeof setTimeout> | undefined;
     const open = () => {
       if (stopped) return;
       onConnection(attempt ? 'reconnecting' : 'connecting');
@@ -80,6 +83,7 @@ export class HttpWsTransport implements Transport {
       const token = this.config.getToken?.();
       if (token) url.searchParams.set('token', token);
       const reconnect = () => {
+        clearTimeout(snapshotTimer);
         if (stopped) return;
         onConnection('reconnecting');
         retry = setTimeout(open, Math.min(1000 * 2 ** attempt++, 15000));
@@ -91,6 +95,7 @@ export class HttpWsTransport implements Transport {
         return;
       }
       const current = socket;
+      snapshotTimer = setTimeout(() => current.close(), this.config.snapshotTimeoutMs ?? 10000);
       current.onopen = () => {
         if (!stopped && socket === current)
           current.send(JSON.stringify({ t: 'subscribe', operationId }));
@@ -100,11 +105,15 @@ export class HttpWsTransport implements Transport {
         let message: ServerMessage;
         try {
           message = ServerMessageSchema.parse(JSON.parse(String(event.data)));
-        } catch {
+        } catch (error) {
+          this.config.onContractError?.(error instanceof Error ? error.message : String(error));
+          if ((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV)
+            console.error('BASTION server message failed contract validation');
           onMessage({ t: 'error', code: 'invalid_message', message: 'Invalid server message' });
           return;
         }
         if (message.t === 'snapshot') {
+          clearTimeout(snapshotTimer);
           attempt = 0;
           onConnection('live');
         }
@@ -123,6 +132,7 @@ export class HttpWsTransport implements Transport {
     return () => {
       stopped = true;
       clearTimeout(retry);
+      clearTimeout(snapshotTimer);
       if (socket) {
         socket.onclose = null;
         socket.onmessage = null;
