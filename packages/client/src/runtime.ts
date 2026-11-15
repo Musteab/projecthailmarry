@@ -1,3 +1,4 @@
+import { createDemoSequence } from './demo/sequence';
 import { createStore } from 'zustand/vanilla';
 import { apiPaths, LoginResponseSchema, UserSchema } from '@bastion/shared';
 import type {
@@ -36,6 +37,7 @@ export interface ClientOptions extends BastionConfig {
   transport?: Transport;
   storage?: SessionStorage;
   cacheStorage?: CacheStorage;
+  demoCredentials?: { password?: string; operatorEmail?: string; coordinatorEmail?: string };
 }
 interface DataState {
   region?: RegionStatic;
@@ -127,25 +129,14 @@ export function createBastionClient(config: ClientOptions = {}) {
       if (generation === epoch) data.setState({ scenariosLoading: false, regionLoading: false });
     }
   };
-  const launch = async ({
-    scenarioId,
-    mode,
-  }: {
-    scenarioId: string;
-    mode: Mode;
-  }): Promise<Operation> => {
-    const generation = epoch,
-      ticket = ++launchEpoch;
-    const scenario = data.getState().scenarios.find((s) => s.id === scenarioId);
-    if (!scenario) throw new Error('Select a scenario from the loaded catalogue');
-    const region = await loadRegion(scenario.regionId);
-    const operation = await request<Operation>('POST', apiPaths.operations, {
-      regionId: scenario.regionId,
-      scenarioId,
-      mode,
-    });
-    const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(operation.id));
-    if (generation !== epoch || ticket !== launchEpoch) return operation;
+  const attachOperation = (
+    snapshot: WorldSnapshot,
+    region: RegionStatic,
+    generation: number,
+    ticket: number,
+  ) => {
+    const operation = snapshot.operation;
+    if (generation !== epoch || ticket !== launchEpoch) return;
     disconnect?.();
     world.reset();
     data.setState({
@@ -175,7 +166,35 @@ export function createBastionClient(config: ClientOptions = {}) {
         if (generation === epoch && ticket === launchEpoch) world.setState({ connection });
       },
     );
+  };
+  const launch = async ({
+    scenarioId,
+    mode,
+  }: {
+    scenarioId: string;
+    mode: Mode;
+  }): Promise<Operation> => {
+    const generation = epoch,
+      ticket = ++launchEpoch;
+    const scenario = data.getState().scenarios.find((s) => s.id === scenarioId);
+    if (!scenario) throw new Error('Select a scenario from the loaded catalogue');
+    const region = await loadRegion(scenario.regionId);
+    const operation = await request<Operation>('POST', apiPaths.operations, {
+      regionId: scenario.regionId,
+      scenarioId,
+      mode,
+    });
+    const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(operation.id));
+    attachOperation(snapshot, region, generation, ticket);
     return operation;
+  };
+  const selectOperation = async (id: string) => {
+    const generation = epoch,
+      ticket = ++launchEpoch;
+    const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(id));
+    const region = await loadRegion(snapshot.operation.regionId);
+    attachOperation(snapshot, region, generation, ticket);
+    return snapshot.operation;
   };
   const command = async (path: string, body?: unknown) => {
     const id = opId(),
@@ -289,6 +308,54 @@ export function createBastionClient(config: ClientOptions = {}) {
       world.setState({ beat: null });
     },
   };
+  const switchPersona = async (role: 'operator' | 'coordinator') => {
+    const id = world.getState().world.operation.id;
+    const credentials = config.demoCredentials;
+    await login(
+      (role === 'operator' ? credentials?.operatorEmail : credentials?.coordinatorEmail) ??
+        `${role}@bastion.demo`,
+      credentials?.password ?? 'bastion-demo',
+    );
+    if (id) await selectOperation(id);
+  };
+  const launchHazard = async (hazard: 'flash_flood' | 'earthquake') => {
+    const scenario =
+      data.getState().scenarios.find((s) => s.hazard === hazard && s.regionId === 'portland') ??
+      data.getState().scenarios.find((s) => s.hazard === hazard);
+    if (!scenario) throw new Error(`No ${hazard.replaceAll('_', ' ')} scenario is available`);
+    await launch({ scenarioId: scenario.id, mode: 'exercise' });
+    await control('start');
+  };
+  const stageDirector = createDemoSequence([
+    { id: 'operator', title: 'Sign in as operator', run: () => switchPersona('operator') },
+    { id: 'flood', title: 'Launch flood exercise', run: () => launchHazard('flash_flood') },
+    { id: 'briefing', title: 'Review response briefing', run: refreshBriefing },
+    {
+      id: 'coordinator',
+      title: 'Switch to recovery coordinator',
+      run: () => switchPersona('coordinator'),
+    },
+    { id: 'analyze', title: 'Analyze restoration options', run: restorationCommands.analyze },
+    {
+      id: 'work-order',
+      title: 'Issue recommended work order',
+      run: () => {
+        const id = world.getState().world.restoration?.recommendedOptionId;
+        if (!id)
+          throw new Error('Wait for a restoration recommendation before issuing the work order');
+        return restorationCommands.createWorkOrder(id);
+      },
+    },
+    {
+      id: 'quake',
+      title: 'Launch earthquake exercise',
+      run: async () => {
+        await switchPersona('operator');
+        await launchHazard('earthquake');
+      },
+    },
+    { id: 'compare', title: 'Review earthquake briefing', run: refreshBriefing },
+  ]);
   const start = async () => {
     if (started) return;
     started = true;
@@ -334,6 +401,8 @@ export function createBastionClient(config: ClientOptions = {}) {
     login,
     logout,
     launch,
+    selectOperation,
+    stageDirector,
     control,
     setSpeed,
     inject,
