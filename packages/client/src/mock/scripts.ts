@@ -51,12 +51,16 @@ export function cellsAt(
 ): Record<string, CellState> {
   const intensity = intensityAt(script.intensity, time);
   if (intensity <= 0) return {};
-  const center = miniPoint(4.5, 2.5),
+  const local = region.config.id !== 'region-mini';
+  const center = local ? region.config.defaultCamera.center : miniPoint(4.5, 2.5),
     cells: Record<string, CellState> = {};
   for (const cell of region.cells) {
     if (script.scenario.hazard === 'flash_flood') {
-      const weight = Math.max(0, 1 - Math.abs(cell.center[1] - center[1]) / 0.0035);
-      if (cell.center[0] >= miniPoint(2.5, 0)[0] && weight > 0.05)
+      const weight = Math.max(
+        0,
+        1 - Math.abs(cell.center[1] - center[1]) / (local ? 0.006 : 0.0035),
+      );
+      if ((local || cell.center[0] >= miniPoint(2.5, 0)[0]) && weight > 0.05)
         cells[cell.id] = { floodDepthM: Number((intensity * weight).toFixed(3)) };
     } else {
       const weight = Math.max(

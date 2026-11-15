@@ -43,6 +43,7 @@ import type { Connection, Method, Transport } from './index';
 export interface MockOptions {
   recording?: string | RecordedFrame[];
   region?: RegionStatic;
+  scripts?: ReturnType<typeof createMockScripts>;
 }
 /** Scripted exercise or recorded-run replay. Never calls an external service. */
 export class MockTransport implements Transport {
@@ -115,7 +116,7 @@ export class MockTransport implements Transport {
 
   constructor(options: MockOptions = {}) {
     this.region = options.region ?? loadRegionMini();
-    this.scripts = createMockScripts(this.region);
+    this.scripts = options.scripts ?? createMockScripts(this.region);
     this.selected = this.scripts[0];
     if (options.recording) {
       this.replay = new RecordingPlayer(options.recording);
@@ -379,7 +380,10 @@ export class MockTransport implements Transport {
     if (status === 'created') {
       const option = this.world.restoration?.recommendedOptionId;
       if (!option) return;
-      this.scriptWorkOrder = this.createWorkOrder(option).id;
+      const existing = Object.values(this.world.workOrders).find(
+        (order) => order.optionId === option && order.status !== 'cancelled',
+      );
+      this.scriptWorkOrder = existing?.id ?? this.createWorkOrder(option).id;
     } else if (this.scriptWorkOrder) {
       const order = this.world.workOrders[this.scriptWorkOrder];
       if (!order || ['cancelled', 'reopened'].includes(order.status)) return;
