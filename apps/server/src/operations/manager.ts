@@ -221,6 +221,20 @@ export class OperationManager {
     }
   }
 
+  /** Ends every operation and forgets them all. Returns how many were still active. */
+  endAll(): number {
+    let ended = 0;
+    for (const runtime of this.runtimes.values()) {
+      if (runtime.operation.status === 'ended') continue;
+      this.setStatus(runtime, 'ended');
+      this.flush(runtime);
+      ended++;
+    }
+    this.runtimes.clear();
+    this.listeners.clear();
+    return ended;
+  }
+
   /** Finds the operation that holds a work order. */
   findWorkOrder(workOrderId: string): OperationRuntime {
     for (const runtime of this.runtimes.values()) {

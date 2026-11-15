@@ -50,6 +50,11 @@ export function insertRuleIfAbsent(db: Database, rule: Rule): boolean {
   return Number(result.changes) > 0;
 }
 
+/** Removes every rule. Used when the demo is reset to its defaults. */
+export function deleteAllRules(db: Database): void {
+  db.exec('DELETE FROM rules');
+}
+
 /** Changes a rule's autonomy and/or thresholds. Returns the updated rule, or undefined if absent. */
 export function updateRule(
   db: Database,

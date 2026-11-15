@@ -132,6 +132,8 @@ export const apiPaths = {
   actionOverride: (actionId: string) => `/api/actions/${id(actionId)}/override`,
   rules: '/api/rules',
   rule: (ruleId: string) => `/api/rules/${id(ruleId)}`,
+  /** administrator only: end every operation and restore demo accounts and rules (v1.4) */
+  adminDemoReset: '/api/admin/demo-reset',
   restorationAnalyze: (operationId: string) =>
     `/api/operations/${id(operationId)}/restoration/analyze`,
   restorationImpact: (operationId: string, optionId: string) =>

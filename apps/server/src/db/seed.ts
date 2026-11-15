@@ -2,7 +2,7 @@ import type { Rule, User } from '@bastion/shared';
 import { hashPassword, verifyPassword } from '../auth/password';
 import type { Database } from './database';
 import { transaction } from './database';
-import { insertRuleIfAbsent } from './rules';
+import { deleteAllRules, insertRuleIfAbsent } from './rules';
 import { findUserById, upsertUser } from './users';
 
 /** One demo account per role. They all share the password from SEED_DEMO_PASSWORD. */
@@ -162,6 +162,12 @@ export const DEFAULT_RULES: RuleSeed[] = [
     approvedBy: 'Utility Operations Manager, switching rule SW-22',
   },
 ];
+
+/** Puts the demo accounts and the agency rules back exactly as a fresh database has them. */
+export function resetDemoData(db: Database, demoPassword: string): SeedResult {
+  deleteAllRules(db);
+  return seed(db, demoPassword);
+}
 
 export interface SeedResult {
   usersWritten: number;

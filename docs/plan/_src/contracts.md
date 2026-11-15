@@ -300,6 +300,7 @@ All routes are under `/api`, JSON in and out, `Authorization: Bearer <jwt>` unle
 | `GET /operations/:id/restoration/options/:optionId/impact` | Per-cell before/after | → `AccessImpact` | Dominic | client |
 | `POST /operations/:id/work-orders` | Create from option | `{optionId}` → `WorkOrder` | Dominic | client |
 | `POST /work-orders/:id/transition` | Advance lifecycle | `{to:WorkOrderStatus}` → `WorkOrder` | Dominic | client |
+| `POST /admin/demo-reset` | Administrator only (v1.4): end every operation, restore demo accounts and default rules | → `{ok:true,operationsEnded}` | Dominic | demo runbook |
 | `GET /operations/:id/audit` | Audit trail | → `AuditEntry[]` (`{id,at,simTime,actor,verb,actionId?,detail}`) | Dominic | client |
 | `POST /operations/:id/signals` | Submit a field report | `Omit<Signal,'id'|'simTime'>` → `Signal` | Dominic | client |
 | `POST /intel/operations/:id/briefing` | AI situation briefing | → `Briefing` | **Muste** | client |
