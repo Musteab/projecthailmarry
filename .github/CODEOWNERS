@@ -1,0 +1,17 @@
+# File ownership, mirroring docs/plan (PART 6 of MASTER_PLAN.md).
+# The last matching pattern wins. Change requests go to the owner; do not edit files you do not own.
+
+# Default: repo root, shared contracts, server, CI, plan docs -> Dominic
+*                       @DominicCode-s
+
+# Thant: all UI. TODO(Dominic): add Thant's GitHub handle after the path below.
+# Until then the path is deliberately left without an owner so Thant's PRs are not blocked.
+/apps/web/
+
+# Muste: data layer, AI and feeds, region pipeline, data, E2E, demo docs
+/packages/client/       @Musteab
+/packages/intel/        @Musteab
+/tools/region-pack/     @Musteab
+/data/                  @Musteab
+/e2e/                   @Musteab
+/docs/demo/             @Musteab
