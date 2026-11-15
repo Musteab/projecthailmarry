@@ -9,7 +9,7 @@
  */
 
 /** Bump the minor version for additive changes, the major for breaking ones. */
-export const CONTRACT_VERSION = '1.1.0';
+export const CONTRACT_VERSION = '1.2.0';
 
 export * from './primitives';
 export * from './region';

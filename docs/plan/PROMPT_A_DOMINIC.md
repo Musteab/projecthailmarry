@@ -422,8 +422,10 @@ type Inject =
   | { kind: 'spawn_incident'; incident: Pick<Incident, 'kind' | 'title' | 'position' | 'severity'> & Partial<Incident> };
 
 type HazardSpec =
-  | { id: string; kind: 'flash_flood'; label: string; sourcePaths: LngLat[][]; stageCurve: [number, number][] /* [simTime, stageM] */ }
-  | { id: string; kind: 'earthquake'; label: string; epicenter: LngLat; magnitude: number; depthKm: number; originSimTime: number }
+  | { id: string; kind: 'flash_flood'; label: string; sourcePaths: LngLat[][]; stageCurve: [number, number][] /* [simTime, stageM] */;
+      tuning?: { distanceLossPerM?: number; maxReachM?: number; debrisChance?: number } /* v1.2 */ }
+  | { id: string; kind: 'earthquake'; label: string; epicenter: LngLat; magnitude: number; depthKm: number; originSimTime: number;
+      tuning?: { waveSpeedMps?: number; intensityOffset?: number } /* v1.2 */ }
   | { id: string; kind: 'tornado' | 'hurricane'; label: string; track: [number, LngLat][]; radiusM: number; peakWindKph: number };
 
 type ScenarioEvent = { at: number } & (
