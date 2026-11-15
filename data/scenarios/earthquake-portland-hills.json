@@ -1,0 +1,255 @@
+{
+  "id": "earthquake-portland-hills",
+  "name": "Portland Hills: routes change the response",
+  "hazard": "earthquake",
+  "regionId": "portland",
+  "description": "Three-minute earthquake exercise. Synthetic shaking and forced damage contrast west-bank access with the Johnson Creek flood.",
+  "seed": 3408,
+  "durationSimSec": 900,
+  "defaultSpeed": 5,
+  "hazards": [
+    {
+      "id": "hills-quake",
+      "kind": "earthquake",
+      "label": "Portland Hills earthquake exercise",
+      "epicenter": [
+        -122.69,
+        45.5
+      ],
+      "magnitude": 6.3,
+      "depthKm": 10,
+      "originSimTime": 50,
+      "tuning": {
+        "waveSpeedMps": 300,
+        "intensityOffset": -1.8
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "at": 0,
+      "type": "signal",
+      "signal": {
+        "source": "official_alert",
+        "title": "EXERCISE: earthquake early warning",
+        "body": "Training earthquake warning; prepare for shaking. This is not a real alert.",
+        "position": [
+          -122.69,
+          45.5
+        ],
+        "reliability": 0.95
+      }
+    },
+    {
+      "at": 50,
+      "type": "hazard_phase",
+      "hazardId": "hills-quake",
+      "phase": "active"
+    },
+    {
+      "at": 50,
+      "type": "inject",
+      "inject": {
+        "kind": "damage_bridge",
+        "bridgeId": "bridge-ross-island-bridge",
+        "severity": "closed"
+      }
+    },
+    {
+      "at": 60,
+      "type": "inject",
+      "inject": {
+        "kind": "facility_power_loss",
+        "facilityId": "way-57692206",
+        "backupFuelMin": 0.5
+      }
+    },
+    {
+      "at": 70,
+      "type": "inject",
+      "inject": {
+        "kind": "grid_fault",
+        "sectionId": "grid-way-1156848025-0-3"
+      }
+    },
+    {
+      "at": 100,
+      "type": "signal",
+      "signal": {
+        "source": "field_report",
+        "title": "Collapsed structure near the west bridge approach",
+        "body": "Structure collapse with trapped occupants. The Ross Island Bridge crossing is unavailable.",
+        "position": [
+          -122.6742,
+          45.5014
+        ],
+        "reliability": 0.95
+      }
+    },
+    {
+      "at": 100,
+      "type": "signal",
+      "signal": {
+        "source": "call_911",
+        "title": "Collapsed structure near the west bridge approach",
+        "body": "Caller confirms occupants trapped under rubble at the same collapse; specialist search and rescue required.",
+        "position": [
+          -122.6743,
+          45.50145
+        ],
+        "reliability": 0.95
+      }
+    },
+    {
+      "at": 130,
+      "type": "signal",
+      "signal": {
+        "source": "field_report",
+        "title": "Second collapse on the west bank",
+        "body": "A separate structure collapse has trapped occupants; needs USAR assessment.",
+        "position": [
+          -122.688,
+          45.515
+        ],
+        "reliability": 0.95
+      }
+    },
+    {
+      "at": 200,
+      "type": "signal",
+      "signal": {
+        "source": "call_911",
+        "title": "Cardiac emergency near the hospital district",
+        "body": "Adult with chest pain and severe breathlessness. Nearby hospital services are disrupted.",
+        "position": [
+          -122.679,
+          45.499
+        ],
+        "reliability": 0.95
+      }
+    },
+    {
+      "at": 480,
+      "type": "inject",
+      "inject": {
+        "kind": "set_road_status",
+        "edgeIds": [
+          "way-726588882-15"
+        ],
+        "status": "blocked",
+        "reason": "EXERCISE: quake debris blocks Southwest Arnold Street access",
+        "estCrewHours": 0.2
+      }
+    },
+    {
+      "at": 750,
+      "type": "hazard_phase",
+      "hazardId": "hills-quake",
+      "phase": "ended"
+    }
+  ],
+  "beats": [
+    {
+      "id": "quake-0",
+      "simTime": 0,
+      "title": "Act 2: same city, different hazard",
+      "caption": "An earthquake warning replaces the creek threat.",
+      "camera": {
+        "center": [
+          -122.69,
+          45.5
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "quake-50",
+      "simTime": 50,
+      "title": "Shaking changes the network",
+      "caption": "The Ross Island Bridge is forcibly closed for this exercise.",
+      "camera": {
+        "center": [
+          -122.665,
+          45.501
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "quake-100",
+      "simTime": 100,
+      "title": "Reachable beats nearby",
+      "caption": "Compare USAR routes after the direct river crossing is lost.",
+      "camera": {
+        "center": [
+          -122.6742,
+          45.5014
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "quake-205",
+      "simTime": 205,
+      "title": "Change the destination",
+      "caption": "Hospital power loss changes the ambulance destination.",
+      "camera": {
+        "center": [
+          -122.679,
+          45.499
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      },
+      "focus": {
+        "facilityId": "way-57692206"
+      }
+    },
+    {
+      "id": "quake-485",
+      "simTime": 485,
+      "title": "A different recovery priority",
+      "caption": "Southwest Arnold Street has a distinct access-restoration opportunity.",
+      "camera": {
+        "center": [
+          -122.6899748,
+          45.4459582
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      },
+      "focus": {
+        "edgeId": "way-726588882-15"
+      }
+    },
+    {
+      "id": "quake-750",
+      "simTime": 750,
+      "title": "Compare the two operations",
+      "caption": "Different hazard, specialist crew, hospital destination and clearance candidate.",
+      "camera": {
+        "center": [
+          -122.67,
+          45.49
+        ],
+        "zoom": 14,
+        "pitch": 60,
+        "bearing": 25,
+        "durationMs": 1800
+      }
+    }
+  ]
+}
