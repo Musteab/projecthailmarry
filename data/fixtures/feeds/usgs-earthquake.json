@@ -1,0 +1,141 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "generated": 1794720873000,
+    "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    "title": "USGS All Earthquakes, Past Day",
+    "status": 200,
+    "api": "2.8.2",
+    "count": 200
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "mag": 1.05,
+        "place": "5 km WNW of Cobb, CA",
+        "time": 1794720002060,
+        "updated": 1794720097301,
+        "tz": null,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/nc75466622",
+        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/nc75466622.geojson",
+        "felt": null,
+        "cdi": null,
+        "mmi": null,
+        "alert": null,
+        "status": "automatic",
+        "tsunami": 0,
+        "sig": 17,
+        "net": "nc",
+        "code": "75466622",
+        "ids": ",nc75466622,",
+        "sources": ",nc,",
+        "types": ",nearby-cities,origin,phase-data,",
+        "nst": 17,
+        "dmin": 0.007437,
+        "rms": 0.02,
+        "gap": 130,
+        "magType": "md",
+        "type": "earthquake",
+        "title": "M 1.1 - 5 km WNW of Cobb, CA"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.782669067383,
+          38.8339996337891,
+          1.85000002384186
+        ]
+      },
+      "id": "nc75466622"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "mag": 3.9,
+        "place": "11 km E of Chenega, Alaska",
+        "time": 1794719740008,
+        "updated": 1794720646343,
+        "tz": null,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026wptmlc",
+        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/aka2026wptmlc.geojson",
+        "felt": 13,
+        "cdi": 3.4,
+        "mmi": 3.623,
+        "alert": null,
+        "status": "reviewed",
+        "tsunami": 0,
+        "sig": 238,
+        "net": "ak",
+        "code": "a2026wptmlc",
+        "ids": ",aka2026wptmlc,us7000tyc9,",
+        "sources": ",ak,us,",
+        "types": ",dyfi,moment-tensor,origin,phase-data,shakemap,",
+        "nst": 168,
+        "dmin": 0.2,
+        "rms": 0.9,
+        "gap": 97,
+        "magType": "ml",
+        "type": "earthquake",
+        "title": "M 3.9 - 11 km E of Chenega, Alaska"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.799,
+          60.073,
+          14.4
+        ]
+      },
+      "id": "aka2026wptmlc"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "mag": 5.5,
+        "place": "Fiji region",
+        "time": 1794719702697,
+        "updated": 1794720662040,
+        "tz": null,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000tyca",
+        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/us7000tyca.geojson",
+        "felt": null,
+        "cdi": null,
+        "mmi": null,
+        "alert": null,
+        "status": "reviewed",
+        "tsunami": 0,
+        "sig": 465,
+        "net": "us",
+        "code": "7000tyca",
+        "ids": ",us7000tyca,",
+        "sources": ",us,",
+        "types": ",origin,phase-data,",
+        "nst": 83,
+        "dmin": 4.063,
+        "rms": 0.75,
+        "gap": 36,
+        "magType": "mww",
+        "type": "earthquake",
+        "title": "M 5.5 - Fiji region"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -177.8215,
+          -19.5554,
+          469.881
+        ]
+      },
+      "id": "us7000tyca"
+    }
+  ],
+  "bbox": [
+    -178.3404,
+    -40.0345,
+    -0.8,
+    179.464,
+    65.113,
+    506.899
+  ]
+}
