@@ -22,3 +22,5 @@ The optional `log` callback receives task, model, latency, cache/fallback source
 and token counts. It never receives API keys, headers or report text. Live Claude
 latency/credentials must be verified in the team's configured environment; tests
 use FakeProvider and do not claim successful live calls.
+
+MUS-010 adds authenticated operation briefing and copilot routes. Narratives reject numeric claims absent from the supplied evidence; copilot entity references must resolve in the operation/region. `useCopilot()` now also exposes `refs` for map highlighting. Neither route executes commands. The current host exposes recent timeline and decision explanations, but not the complete audit history; full audit retrieval is deferred to the audit integration. Fusion uses a JSON-schema-compatible numeric array on the model boundary, then validates coordinates through the shared tuple schema and clamps numeric ranges in code.

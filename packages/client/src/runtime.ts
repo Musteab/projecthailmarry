@@ -47,6 +47,7 @@ interface DataState {
   briefing?: Briefing;
   briefingLoading: boolean;
   history: { q: string; a: string }[];
+  copilotRefs: NonNullable<CopilotResponse['refs']>;
   steps: DemoStep[];
   current: number;
 }
@@ -70,6 +71,7 @@ export function createBastionClient(config: ClientOptions = {}) {
     rules: [],
     briefingLoading: false,
     history: [],
+    copilotRefs: [],
     steps: [],
     current: -1,
   });
@@ -150,6 +152,7 @@ export function createBastionClient(config: ClientOptions = {}) {
       region,
       briefing: undefined,
       history: [],
+      copilotRefs: [],
       current: -1,
       steps: transport instanceof MockTransport ? transport.scenario.beats : [],
     });
@@ -261,11 +264,14 @@ export function createBastionClient(config: ClientOptions = {}) {
   const ask = async (question: string) => {
     const id = opId(),
       generation = epoch;
-    const { answer } = await request<CopilotResponse>('POST', apiPaths.intelCopilot(id), {
+    const { answer, refs } = await request<CopilotResponse>('POST', apiPaths.intelCopilot(id), {
       question,
     });
     if (generation === epoch && opId() === id)
-      data.setState((state) => ({ history: [...state.history, { q: question, a: answer }] }));
+      data.setState((state) => ({
+        history: [...state.history, { q: question, a: answer }],
+        copilotRefs: refs ?? [],
+      }));
     return answer;
   };
   const goto = (index: number) => {
