@@ -11,7 +11,7 @@ import { scenarioRunner } from './scenarioRunner';
 /**
  * The per-step pipeline, in order:
  * scenario -> hazards -> intel and incidents -> grid -> dispatch decisions -> protective actions
- * -> action housekeeping -> units -> metrics.
+ * -> action housekeeping -> work orders -> units -> restoration analysis -> metrics.
  */
 export function defaultSystems(intel: IntelPort = new NullIntel()): SystemFactory[] {
   return [
@@ -22,7 +22,9 @@ export function defaultSystems(intel: IntelPort = new NullIntel()): SystemFactor
     decisionSystem,
     protectiveSystem,
     (rt) => rt.actions.system(),
+    (rt) => rt.workOrders.system(),
     (rt) => rt.units.system(),
+    (rt) => rt.restoration.system(),
     metricsSystem,
   ];
 }

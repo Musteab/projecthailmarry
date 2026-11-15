@@ -18,6 +18,8 @@ import { applyInject } from './injects';
 import type { AuditRecord } from '../actions/service';
 import { ActionService } from '../actions/service';
 import { GridService } from '../grid/grid';
+import { RestorationService } from '../restoration/service';
+import { WorkOrderService } from '../workorders/service';
 import { UnitService } from '../units/units';
 import { Prng } from './prng';
 
@@ -71,6 +73,12 @@ export class OperationRuntime {
   readonly actions: ActionService;
   /** The distribution grid: threat detection, isolation and its consequences. */
   readonly grid: GridService;
+  /** Ranks repairs by who regains access to hospitals and shelters. */
+  readonly restoration: RestorationService;
+  /** Tracks repairs from work order to reopened road. */
+  readonly workOrders: WorkOrderService;
+  /** Writes an entry to the audit trail. */
+  readonly audit: (record: AuditRecord) => void;
   /** Running totals that are not derivable from the current world. */
   readonly stats = { peopleRescued: 0 };
   /** Signals that arrived since the previous step, for systems that react to them. */
@@ -116,8 +124,11 @@ export class OperationRuntime {
     }));
     this.world = new WorldState(initial);
     this.units = new UnitService(this);
-    this.actions = new ActionService(this, options.audit ?? (() => undefined));
+    this.audit = options.audit ?? (() => undefined);
+    this.actions = new ActionService(this, this.audit);
     this.grid = new GridService(this);
+    this.restoration = new RestorationService(this);
+    this.workOrders = new WorkOrderService(this);
     this.systems = options.systems.map((create) => create(this));
   }
 

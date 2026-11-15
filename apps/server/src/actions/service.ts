@@ -174,6 +174,11 @@ const EXECUTORS: Partial<Record<ActionKind, Executor>> = {
     const p = action.payload as Extract<ActionPayload, { kind: 'restore_grid_section' }>;
     return rt.grid.restore(p.sectionId);
   },
+  create_work_order: (rt, action) => {
+    const p = action.payload as Extract<ActionPayload, { kind: 'create_work_order' }>;
+    const created = rt.workOrders.createFromOption(p.optionId, action.decidedBy ?? 'platform');
+    return typeof created === 'string' ? created : null;
+  },
 };
 
 /**
@@ -203,11 +208,6 @@ export class ActionService {
 
   ruleFor(kind: ActionKind, authority: Authority): Rule | undefined {
     return this.rules.find((rule) => rule.actionKind === kind && rule.authority === authority);
-  }
-
-  /** Registers the executor of an action kind that another module owns (work orders). */
-  registerExecutor(kind: ActionKind, executor: Executor): void {
-    EXECUTORS[kind] = executor;
   }
 
   /** The proposal with this key that is still waiting for a decision, if any. */
@@ -254,7 +254,9 @@ export class ActionService {
   private execute(action: Action, decidedBy: string): Action {
     const { rt } = this;
     const executor = EXECUTORS[action.kind];
-    const failure = executor ? executor(rt, action) : `No executor for ${action.kind}`;
+    const failure = executor
+      ? executor(rt, { ...action, decidedBy })
+      : `No executor for ${action.kind}`;
     const done: Action = {
       ...action,
       status: failure ? 'failed' : 'executed',
