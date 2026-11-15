@@ -128,6 +128,7 @@ export const decisionSystem: SystemFactory = () => {
         // Seconds from every node to the incident, over the open network.
         const toIncident = rt.network.travelTimes([rt.index.nearestNodeId(incident.position)], {
           toward: true,
+          profile: capability === 'swift_water' ? 'water' : 'road',
         });
         const options: Option[] = capable.map((unit) => {
           const node = rt.index.topology.requireNode(rt.index.nearestNodeId(unit.position));
