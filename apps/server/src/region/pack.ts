@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import type { RegionStatic } from '@bastion/shared';
 import { RegionStaticSchema } from '@bastion/shared';
 import { loadRegionMini, MINI_REGION_ID } from '@bastion/shared/fixtures';
+import type { RegionIndex } from './index';
+import { buildRegionIndex } from './index';
 
 /** The six files of a region pack. */
 type PackFile = 'region' | 'roads' | 'facilities' | 'cells' | 'grid' | 'units';
@@ -57,6 +59,7 @@ export function readRegionPack(regionsDir: string, regionId: string): RegionStat
  */
 export class RegionRegistry {
   private readonly loaded = new Map<string, { region: RegionStatic; json: string }>();
+  private readonly indexes = new Map<string, RegionIndex>();
 
   constructor(
     private readonly regionsDir: string,
@@ -95,6 +98,17 @@ export class RegionRegistry {
   /** The region, or undefined when there is no such pack. Throws RegionPackError if it is broken. */
   get(regionId: string): RegionStatic | undefined {
     return this.entry(regionId)?.region;
+  }
+
+  /** The region with its lookups and road topology, built once and shared by every operation. */
+  index(regionId: string): RegionIndex | undefined {
+    const cached = this.indexes.get(regionId);
+    if (cached) return cached;
+    const region = this.get(regionId);
+    if (!region) return undefined;
+    const built = buildRegionIndex(region);
+    this.indexes.set(regionId, built);
+    return built;
   }
 
   /** The region as JSON text, serialized once. */

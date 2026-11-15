@@ -2,8 +2,10 @@ import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { AppContext } from './context';
 import { installErrorHandling } from './errors';
+import { registerRealtime } from './realtime/hub';
 import { registerAuthRoutes } from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
+import { registerOperationRoutes } from './routes/operations';
 import { registerRegionRoutes } from './routes/regions';
 import { registerScenarioRoutes } from './routes/scenarios';
 
@@ -36,6 +38,8 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerAuthRoutes(app, ctx);
   registerScenarioRoutes(app, ctx);
   registerRegionRoutes(app, ctx);
+  registerOperationRoutes(app, ctx);
+  await registerRealtime(app, ctx);
 
   app.addHook('onClose', async () => ctx.close());
 
