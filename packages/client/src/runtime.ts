@@ -107,8 +107,15 @@ export function createBastionClient(config: ClientOptions = {}) {
     return regionCache.load(url, () => request<RegionStatic>('GET', path));
   };
   const refresh = async (id: string, generation = epoch) => {
+    // The ordered live stream owns state once connected. A concurrent HTTP snapshot
+    // can arrive after newer ticks and overwrite a completed repair with stale data.
+    if (world.getState().connection === 'live') return;
     const snapshot = await request<WorldSnapshot>('GET', apiPaths.operation(id));
-    if (generation === epoch && world.getState().world.operation.id === id)
+    if (
+      generation === epoch &&
+      world.getState().world.operation.id === id &&
+      world.getState().connection !== 'live'
+    )
       world.receive({ t: 'snapshot', world: snapshot });
   };
   const loadCatalogue = async (generation: number) => {
