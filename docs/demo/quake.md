@@ -18,4 +18,4 @@ Three cache-mode real-runtime rehearsals selected `unit-usar-way-367749332` for 
 
 Run `pnpm --filter @bastion/intel exec node --import tsx scripts/scenario-check.ts earthquake-portland-hills`. The harness seeds the server's default agency rules and checks dispatch, ambulance destination, forced damage, all camera beats and three identical results with zero provider calls. `--warm` records explicitly labelled deterministic fallback fixtures, not live Claude responses.
 
-Remaining acceptance: ranked restoration and work-order reopening await Dominic's recovery systems. The quake currently provides the correct forced debris candidate; it does not claim that a ranking or reopening has already executed.
+Recovery acceptance: three fresh-backend rehearsals rank Southwest Arnold Street first and complete its work order through reopening. A documented synthetic west-side public-works reserve makes the travel time fit the three-minute stage window.

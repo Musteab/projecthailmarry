@@ -29,4 +29,6 @@ Run `pnpm --filter @bastion/region-pack region:build --offline` using the origin
 is not committed; a fresh upstream download may differ. The committed pack is
 immediately usable without downloads. See `docs/demo/ATTRIBUTION.md` for sources.
 
-A synthetic western reserve USAR crew is seeded at `way-367749332`, the northernmost west-side fire station, to make cross-river route comparisons possible. The generator applies the same deterministic selection; these are exercise resources, not actual station staffing. Total units: 45.
+A synthetic western reserve USAR crew is seeded at `way-367749332`, the northernmost west-side fire station, to make cross-river route comparisons possible. The generator applies the same deterministic selection; these are exercise resources, not actual station staffing. Total units after recovery rehearsal: 46.
+
+A synthetic public-works reserve stages at west-side fire station `way-305816961` (the southernmost west-side fire station). Without it, the sole east-side crew cannot finish the quake clearance within the three-minute stage window. This staging assumption is reproduced by the generator and is not real agency staffing.

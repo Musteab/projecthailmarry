@@ -179,6 +179,10 @@ export function makePack(
     .sort((a, b) => b.position[1] - a.position[1])[0];
   if (western && !units.some((u) => u.kind === 'usar' && u.homeFacilityId === western.id))
     add(western, 'usar', 'fire_rescue');
+  const westStaging = fs
+    .filter((f) => f.kind === 'fire_station' && f.position[0] < -122.68)
+    .sort((a, b) => a.position[1] - b.position[1])[0];
+  if (westStaging) add(westStaging, 'public_works', 'public_works');
   return RegionStaticSchema.parse({
     config: {
       id,
