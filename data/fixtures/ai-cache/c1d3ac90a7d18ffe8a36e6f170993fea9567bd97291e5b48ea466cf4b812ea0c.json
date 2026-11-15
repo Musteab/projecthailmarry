@@ -1,0 +1,1 @@
+{"candidates":[{"kind":"medical","title":"Cardiac emergency near the hospital district","position":[-122.679,45.499],"severity":4,"confidence":0.95,"summary":"1 reports support medical: sig-5.","sourceSignalIds":["sig-5"],"requiredCapabilities":["als_ambulance"]}]}

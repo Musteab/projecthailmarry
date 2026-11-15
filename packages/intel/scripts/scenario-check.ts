@@ -8,6 +8,7 @@ import type { IntelContext, Signal } from '@bastion/shared';
 import { readRegionPack } from '../../../apps/server/src/region/pack';
 import { buildRegionIndex } from '../../../apps/server/src/region';
 import { OperationRuntime } from '../../../apps/server/src/sim/runtime';
+import { DEFAULT_RULES } from '../../../apps/server/src/db/seed';
 import { defaultSystems } from '../../../apps/server/src/sim/systems';
 import { createIntel } from '../src/port';
 import { FakeProvider } from '../src/llm';
@@ -57,11 +58,25 @@ for (let run = 0; run < (warm ? 1 : 3); run++) {
     ),
     logger: { error: (message, error) => failures.push({ message, error }) },
   });
+  rt.actions.setRules(
+    DEFAULT_RULES.map((rule) => ({ ...rule, updatedAt: '2026-01-01T00:00:00Z' })),
+  );
   let maxWet = 0,
     maxRoads = 0;
   const beats: string[] = [];
   for (let t = 0; t < scenario.durationSimSec; t++) {
     await rt.advanceSettled(1);
+    if (t >= 700 && scenario.hazard === 'flash_flood')
+      for (const action of Object.values(rt.world.actions)) {
+        if (action.kind === 'activate_shelter' && action.status === 'awaiting_approval')
+          rt.actions.approve(action.id, {
+            id: 'rehearsal-operator',
+            name: 'Rehearsal operator',
+            email: 'operator@bastion.demo',
+            role: 'operator',
+            authority: 'ema',
+          });
+      }
     maxWet = Math.max(maxWet, Object.keys(rt.world.cells).length);
     maxRoads = Math.max(maxRoads, Object.keys(rt.world.roads).length);
     beats.push(...rt.drainBeats().map((b) => b.id));
@@ -82,6 +97,31 @@ for (let run = 0; run < (warm ? 1 : 3); run++) {
     );
     assert.equal(snapshot.roads['way-5293984-8']?.status, 'blocked');
   }
+  const executed = Object.values(snapshot.actions).filter((a) => a.status === 'executed');
+  assert(executed.some((a) => a.kind === 'dispatch_unit'));
+  assert(executed.some((a) => a.kind === 'assign_ambulance'));
+  if (scenario.hazard === 'earthquake') {
+    assert.equal(
+      snapshot.roads[region.bridges.find((b) => b.id === 'bridge-ross-island-bridge')!.edgeIds[0]]
+        ?.status,
+      'closed',
+    );
+    assert(
+      executed.some(
+        (a) => a.payload.kind === 'dispatch_unit' && a.payload.unitId === 'unit-usar-way-367749332',
+      ),
+    );
+    assert(
+      executed.some(
+        (a) =>
+          a.payload.kind === 'assign_ambulance' && a.payload.hospitalId === 'relation-13050886',
+      ),
+    );
+    assert.equal(snapshot.roads['way-726588882-15']?.status, 'blocked');
+  } else {
+    assert(executed.some((a) => a.kind === 'isolate_grid_section'));
+    assert(executed.some((a) => a.kind === 'activate_shelter'));
+  }
   results.push({
     scenario: scenario.id,
     maxWet,
@@ -92,11 +132,22 @@ for (let run = 0; run < (warm ? 1 : 3); run++) {
       sources: i.sourceSignalIds.length,
       confidence: i.confidence,
     })),
-    actions: Object.values(snapshot.actions).length,
+    actions: Object.values(snapshot.actions).map((a) => ({
+      kind: a.kind,
+      status: a.status,
+      payload: a.payload,
+      headline: a.explain.headline,
+    })),
+    isolatedSections: Object.entries(snapshot.gridSections)
+      .filter(([, s]) => s.status === 'isolated')
+      .map(([id]) => id),
     restoration: !!snapshot.restoration,
   });
 }
-if (!warm) assert.equal(provider.calls.length, 0, 'cache mode attempted a model call');
+if (!warm) {
+  assert.equal(provider.calls.length, 0, 'cache mode attempted a model call');
+  for (const result of results.slice(1)) assert.deepEqual(result, results[0]);
+}
 if (warm) {
   await mkdir(join(root, 'data/fixtures/ai-cache'), { recursive: true });
   await writeFile(
