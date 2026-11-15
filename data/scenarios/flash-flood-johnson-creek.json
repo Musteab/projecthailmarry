@@ -1,0 +1,726 @@
+{
+  "id": "flash-flood-johnson-creek",
+  "name": "Johnson Creek: Rescue to Recovery",
+  "hazard": "flash_flood",
+  "regionId": "portland",
+  "description": "Five-minute exercise on real Johnson Creek geography. Synthetic levels, population and damage; not a flood forecast.",
+  "seed": 3407,
+  "durationSimSec": 600,
+  "defaultSpeed": 2,
+  "hazards": [
+    {
+      "id": "johnson-flood",
+      "kind": "flash_flood",
+      "label": "Johnson Creek flash flood exercise",
+      "sourcePaths": [
+        [
+          [
+            -122.5601162,
+            45.4740059
+          ],
+          [
+            -122.5615002,
+            45.4737708
+          ],
+          [
+            -122.562321,
+            45.4730937
+          ],
+          [
+            -122.5631793,
+            45.4720253
+          ],
+          [
+            -122.5640966,
+            45.4709269
+          ],
+          [
+            -122.5644158,
+            45.4701331
+          ],
+          [
+            -122.5646652,
+            45.4687769
+          ],
+          [
+            -122.5671168,
+            45.4686114
+          ],
+          [
+            -122.5688173,
+            45.467921
+          ],
+          [
+            -122.5712018,
+            45.4670727
+          ],
+          [
+            -122.5738863,
+            45.4662754
+          ],
+          [
+            -122.5775374,
+            45.4649224
+          ],
+          [
+            -122.5786472,
+            45.4636968
+          ],
+          [
+            -122.580949,
+            45.4627201
+          ],
+          [
+            -122.5823077,
+            45.4613984
+          ],
+          [
+            -122.583813,
+            45.4612677
+          ],
+          [
+            -122.5853185,
+            45.459998
+          ],
+          [
+            -122.5848699,
+            45.4589962
+          ],
+          [
+            -122.5866857,
+            45.4585428
+          ],
+          [
+            -122.5877372,
+            45.4583099
+          ],
+          [
+            -122.5888775,
+            45.4579279
+          ],
+          [
+            -122.5899765,
+            45.457295
+          ],
+          [
+            -122.5902427,
+            45.4563188
+          ],
+          [
+            -122.5919727,
+            45.4553353
+          ],
+          [
+            -122.5934557,
+            45.4556555
+          ],
+          [
+            -122.5939038,
+            45.4550041
+          ],
+          [
+            -122.594831,
+            45.4553044
+          ],
+          [
+            -122.5970475,
+            45.4552299
+          ],
+          [
+            -122.5991139,
+            45.4547285
+          ],
+          [
+            -122.6001661,
+            45.4544583
+          ],
+          [
+            -122.600414,
+            45.4550826
+          ],
+          [
+            -122.6002024,
+            45.4558088
+          ],
+          [
+            -122.6024598,
+            45.4557221
+          ],
+          [
+            -122.6049925,
+            45.4559054
+          ],
+          [
+            -122.6061392,
+            45.455697
+          ],
+          [
+            -122.6065243,
+            45.4561698
+          ],
+          [
+            -122.6067191,
+            45.4569446
+          ],
+          [
+            -122.6089614,
+            45.4576203
+          ],
+          [
+            -122.6117975,
+            45.4588602
+          ],
+          [
+            -122.6135707,
+            45.4592883
+          ],
+          [
+            -122.6149696,
+            45.4599728
+          ],
+          [
+            -122.6164004,
+            45.4606852
+          ],
+          [
+            -122.6163399,
+            45.4617757
+          ],
+          [
+            -122.6179292,
+            45.4624191
+          ],
+          [
+            -122.6194634,
+            45.4629195
+          ],
+          [
+            -122.6208689,
+            45.4626298
+          ],
+          [
+            -122.6228732,
+            45.4624329
+          ],
+          [
+            -122.6249261,
+            45.4622847
+          ],
+          [
+            -122.6258509,
+            45.4632152
+          ],
+          [
+            -122.6264213,
+            45.463776
+          ],
+          [
+            -122.6268513,
+            45.4638692
+          ]
+        ],
+        [
+          [
+            -122.6179292,
+            45.4624191
+          ],
+          [
+            -122.6178741,
+            45.4634437
+          ],
+          [
+            -122.6180467,
+            45.4640746
+          ],
+          [
+            -122.618825,
+            45.4636682
+          ],
+          [
+            -122.6196804,
+            45.4629892
+          ]
+        ],
+        [
+          [
+            -122.6268513,
+            45.4638692
+          ],
+          [
+            -122.627582,
+            45.4643962
+          ],
+          [
+            -122.6293909,
+            45.4650854
+          ],
+          [
+            -122.6315423,
+            45.4644718
+          ],
+          [
+            -122.6329627,
+            45.4642948
+          ]
+        ],
+        [
+          [
+            -122.6329627,
+            45.4642948
+          ],
+          [
+            -122.6348069,
+            45.4646518
+          ],
+          [
+            -122.635532,
+            45.4641481
+          ],
+          [
+            -122.6352851,
+            45.4630202
+          ],
+          [
+            -122.6374287,
+            45.463219
+          ],
+          [
+            -122.6390072,
+            45.4640088
+          ],
+          [
+            -122.6394952,
+            45.4634341
+          ],
+          [
+            -122.639467,
+            45.462323
+          ],
+          [
+            -122.6400992,
+            45.4617904
+          ],
+          [
+            -122.6413725,
+            45.4614079
+          ],
+          [
+            -122.6420543,
+            45.4608198
+          ],
+          [
+            -122.6425754,
+            45.4602417
+          ],
+          [
+            -122.6420854,
+            45.4592288
+          ],
+          [
+            -122.6423166,
+            45.4573804
+          ],
+          [
+            -122.6430963,
+            45.4563748
+          ],
+          [
+            -122.6431022,
+            45.4551675
+          ],
+          [
+            -122.6433296,
+            45.453123
+          ],
+          [
+            -122.6426519,
+            45.4513347
+          ],
+          [
+            -122.6427161,
+            45.4490843
+          ],
+          [
+            -122.6429259,
+            45.4479179
+          ],
+          [
+            -122.6430869,
+            45.4467911
+          ],
+          [
+            -122.6443327,
+            45.4462387
+          ],
+          [
+            -122.6434523,
+            45.4452866
+          ],
+          [
+            -122.6439438,
+            45.4444738
+          ],
+          [
+            -122.6460868,
+            45.4436777
+          ]
+        ],
+        [
+          [
+            -122.5716669,
+            45.4669627
+          ],
+          [
+            -122.5737713,
+            45.4660196
+          ]
+        ]
+      ],
+      "stageCurve": [
+        [
+          0,
+          0
+        ],
+        [
+          40,
+          0.3
+        ],
+        [
+          100,
+          2.5
+        ],
+        [
+          180,
+          4.5
+        ],
+        [
+          280,
+          4.5
+        ],
+        [
+          360,
+          1.0
+        ],
+        [
+          400,
+          0
+        ],
+        [
+          600,
+          0
+        ]
+      ],
+      "tuning": {
+        "distanceLossPerM": 0.004,
+        "maxReachM": 700,
+        "debrisChance": 0
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "at": 0,
+      "type": "signal",
+      "signal": {
+        "source": "official_alert",
+        "title": "EXERCISE: Johnson Creek flash-flood warning",
+        "body": "Training warning: rapid rises expected along Johnson Creek. No real warning is issued.",
+        "reliability": 0.98,
+        "position": [
+          -122.61,
+          45.46
+        ]
+      }
+    },
+    {
+      "at": 0,
+      "type": "hazard_phase",
+      "hazardId": "johnson-flood",
+      "phase": "forecast"
+    },
+    {
+      "at": 40,
+      "type": "signal",
+      "signal": {
+        "source": "sensor",
+        "title": "EXERCISE: creek gauge rising",
+        "body": "Synthetic gauge rises above the training threshold.",
+        "reliability": 0.95,
+        "position": [
+          -122.6378,
+          45.4571
+        ],
+        "data": {
+          "gaugeStageM": 2.5,
+          "trend": "rising",
+          "synthetic": true
+        }
+      }
+    },
+    {
+      "at": 40,
+      "type": "hazard_phase",
+      "hazardId": "johnson-flood",
+      "phase": "active"
+    },
+    {
+      "at": 100,
+      "type": "signal",
+      "signal": {
+        "source": "field_report",
+        "title": "Family stranded near Johnson Creek",
+        "body": "Field observer reports a family trapped upstairs by rising water; water rescue needed.",
+        "reliability": 0.9,
+        "position": [
+          -122.6378,
+          45.4571
+        ]
+      }
+    },
+    {
+      "at": 100,
+      "type": "signal",
+      "signal": {
+        "source": "call_911",
+        "title": "Family stranded near Johnson Creek",
+        "body": "Caller confirms the same family trapped upstairs. All are alert; access stairs are under water.",
+        "reliability": 0.95,
+        "position": [
+          -122.6377,
+          45.45715
+        ]
+      }
+    },
+    {
+      "at": 100,
+      "type": "signal",
+      "signal": {
+        "source": "imagery",
+        "title": "Family stranded near Johnson Creek",
+        "body": "Exercise image interpretation: people visible at an upper window surrounded by water. Matches the field report.",
+        "reliability": 0.9,
+        "position": [
+          -122.6379,
+          45.4571
+        ]
+      }
+    },
+    {
+      "at": 160,
+      "type": "signal",
+      "signal": {
+        "source": "call_911",
+        "title": "Cardiac call south of Johnson Creek",
+        "body": "Adult reports chest pain with severe breathlessness. Ambulance assessment needed; nearby streets have water across them.",
+        "reliability": 0.98,
+        "position": [
+          -122.6289,
+          45.4529
+        ]
+      }
+    },
+    {
+      "at": 220,
+      "type": "signal",
+      "signal": {
+        "source": "utility_scada",
+        "title": "Feeder threatened by rising water",
+        "body": "Synthetic utility telemetry shows flood exposure on the creek feeder. Apply the configured utility authority rule.",
+        "reliability": 0.99,
+        "position": [
+          -122.6404,
+          45.4738
+        ],
+        "data": {
+          "sectionId": "grid-way-1179633271-0-1",
+          "threatened": true
+        }
+      }
+    },
+    {
+      "at": 240,
+      "type": "inject",
+      "inject": {
+        "kind": "facility_power_loss",
+        "facilityId": "way-594657226",
+        "backupFuelMin": 90
+      }
+    },
+    {
+      "at": 280,
+      "type": "signal",
+      "signal": {
+        "source": "field_report",
+        "title": "Displaced residents need shelter",
+        "body": "Evacuated households need an accessible shelter outside the inundation footprint.",
+        "reliability": 0.9,
+        "position": [
+          -122.641,
+          45.477
+        ]
+      }
+    },
+    {
+      "at": 360,
+      "type": "hazard_phase",
+      "hazardId": "johnson-flood",
+      "phase": "receding"
+    },
+    {
+      "at": 440,
+      "type": "inject",
+      "inject": {
+        "kind": "set_road_status",
+        "edgeIds": [
+          "way-5293984-8"
+        ],
+        "status": "blocked",
+        "reason": "EXERCISE: recession debris blocks the sole modelled entrance to Mailwell Drive",
+        "estCrewHours": 0.25
+      }
+    },
+    {
+      "at": 520,
+      "type": "hazard_phase",
+      "hazardId": "johnson-flood",
+      "phase": "ended"
+    }
+  ],
+  "beats": [
+    {
+      "id": "flood-0",
+      "simTime": 0,
+      "title": "Act 1: warning to action",
+      "caption": "An exercise warning reaches the operations centre.",
+      "camera": {
+        "center": [
+          -122.62,
+          45.465
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "flood-40",
+      "simTime": 40,
+      "title": "Water rises",
+      "caption": "Gauge evidence and terrain-driven inundation reveal exposed roads.",
+      "camera": {
+        "center": [
+          -122.6378,
+          45.4571
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "flood-105",
+      "simTime": 105,
+      "title": "Three reports, one rescue",
+      "caption": "Field, caller and imagery evidence identify the same family.",
+      "camera": {
+        "center": [
+          -122.6378,
+          45.4571
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "flood-165",
+      "simTime": 165,
+      "title": "Medical response under pressure",
+      "caption": "A separate cardiac call requires ALS and a reachable hospital.",
+      "camera": {
+        "center": [
+          -122.6289,
+          45.4529
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "flood-220",
+      "simTime": 220,
+      "title": "Protect critical services",
+      "caption": "Utility-authorized actions protect the feeder; the hospital backup loss is scripted.",
+      "camera": {
+        "center": [
+          -122.6404,
+          45.4738
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      },
+      "focus": {
+        "sectionId": "grid-way-1179633271-0-1",
+        "facilityId": "way-594657226"
+      }
+    },
+    {
+      "id": "flood-285",
+      "simTime": 285,
+      "title": "Shelter displaced residents",
+      "caption": "An accessible shelter becomes part of the response.",
+      "camera": {
+        "center": [
+          -122.641,
+          45.477
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    },
+    {
+      "id": "flood-445",
+      "simTime": 445,
+      "title": "Recover access, not just roads",
+      "caption": "Mailwell Drive debris isolates a modelled pocket of 1,021 people. Compare clearance benefits.",
+      "camera": {
+        "center": [
+          -122.640228,
+          45.4548747
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      },
+      "focus": {
+        "edgeId": "way-5293984-8"
+      }
+    },
+    {
+      "id": "flood-520",
+      "simTime": 520,
+      "title": "From response to recovery",
+      "caption": "The coordinator can issue and track the access-restoring work order.",
+      "camera": {
+        "center": [
+          -122.64,
+          45.455
+        ],
+        "zoom": 14.3,
+        "pitch": 60,
+        "bearing": -15,
+        "durationMs": 1800
+      }
+    }
+  ]
+}
