@@ -538,7 +538,7 @@ describe('metrics', () => {
 
     rt.advance(150);
     expect(rt.world.metrics.peopleAtRisk).toBe(0); // the water is gone
-    expect(rt.world.metrics.customersOut).toBe(800); // the scripted grid fault
+    expect(rt.world.metrics.customersOut).toBe(1800); // the scripted fault and the section it feeds
   });
 
   it('a restricted bridge does not count as a closed road', () => {
