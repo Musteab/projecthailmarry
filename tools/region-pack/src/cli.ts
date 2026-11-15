@@ -44,6 +44,17 @@ const cache = resolve(root, values.cache),
   output = resolve(root, 'data/regions', values.id);
 await mkdir(cache, { recursive: true });
 await mkdir(output, { recursive: true });
+const cacheParameters = resolve(cache, 'parameters.json');
+try {
+  const previous = JSON.parse(await readFile(cacheParameters, 'utf8'));
+  if (JSON.stringify(previous.bbox) !== JSON.stringify(bbox))
+    throw new Error(
+      'Cache belongs to a different bounding box; choose a separate --cache directory',
+    );
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  await writeFile(cacheParameters, JSON.stringify({ bbox }) + '\n');
+}
 const hashes: Record<string, string> = {};
 async function cached(name: string, url: string, init?: RequestInit) {
   const path = resolve(cache, name);
