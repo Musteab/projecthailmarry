@@ -52,6 +52,8 @@ export const HazardStateSchema = z.object({
   magnitude: z.number().optional(),
   originSimTime: z.number().optional(),
   // tornado / hurricane
+  /** where the storm centre is now; absent before it forms and after it has passed (v1.3) */
+  position: LngLatSchema.optional(),
   track: z.array(LngLatSchema).optional(),
   radiusM: z.number().optional(),
   // flood source channels

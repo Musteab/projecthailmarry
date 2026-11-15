@@ -234,6 +234,7 @@ interface HazardState {
   phase: 'forecast' | 'active' | 'receding' | 'ended';
   epicenter?: LngLat; magnitude?: number; originSimTime?: number;   // earthquake
   track?: LngLat[]; radiusM?: number;                               // tornado / hurricane
+  position?: LngLat;                                                // v1.3: storm centre now
   sourcePaths?: LngLat[][];                                         // flood source channels
 }
 interface CellState { floodDepthM?: number; shakeMMI?: number; windKph?: number }
